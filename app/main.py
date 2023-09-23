@@ -1,9 +1,9 @@
 import sys
-
 from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, QButtonGroup, QDockWidget, QColorDialog, QListWidget, QListWidgetItem, QGraphicsRectItem, QComboBox, QLabel, QSlider
 from PyQt6.QtGui import QPainter, QPen, QColor, QTransform, QBrush,  QPainterPath, QPainterPathStroker
 from PyQt6.QtCore import Qt, QPoint, QSize, QRectF
 import math
+
 
 
 class ColorPalette(QWidget):
@@ -18,6 +18,14 @@ class ColorPalette(QWidget):
         self.layout.addWidget(self.addColorButton)
 
         self.addColorButton.clicked.connect(self.addColor)
+
+
+        #eraser slider
+        self.eraserSlider = QSlider(Qt.Orientation.Horizontal, self)
+        self.eraserSlider.setMinimum(1)
+        self.eraserSlider.setMaximum(20)
+        self.layout.addWidget(QLabel("Eraser Size:"))
+        self.layout.addWidget(self.eraserSlider)
 
         self.capStyleComboBox = QComboBox(self)
         self.capStyleComboBox.addItems(["Flat", "Square", "Round", "Tapered"])
@@ -35,6 +43,7 @@ class ColorPalette(QWidget):
         self.opacitySlider.setMaximum(100)
         self.layout.addWidget(QLabel("Opacity:"))
         self.layout.addWidget(self.opacitySlider)
+
 
     def addColor(self):
         color = QColorDialog.getColor()
@@ -59,9 +68,13 @@ class DrawingCanvas(QGraphicsView):
         self.isDrawing = False
         self.currentColor = QColor(Qt.GlobalColor.black)
         self.currentTool = "draw"
+
+        self.currentEraserSize = 10
+
         self.currentSize = 1
         self.currentOpacity = 1.0
         self.currentCapStyle = Qt.PenCapStyle.FlatCap
+
 
         self.scaleFactor = 1.0
         self.rotationAngle = 0.0
@@ -86,6 +99,9 @@ class DrawingCanvas(QGraphicsView):
     def setColor(self, color):
         self.currentColor = QColor(color)
 
+
+    def setEraserSize(self, eraser):
+        self.currentEraserSize = eraser
 
     def setSize(self, size):
         self.currentSize = size
@@ -128,6 +144,14 @@ class DrawingCanvas(QGraphicsView):
     def mouseMoveEvent(self, event):
         if self.isDrawing:
             self.endPoint = self.mapToScene(event.position().toPoint())
+
+            pen = QPen(self.currentColor)
+
+            if self.currentTool == "erase":
+                pen.setColor(Qt.GlobalColor.white)
+                pen.setWidth(self.currentEraserSize)  # Use the current eraser size
+            self.scene().addLine(self.startPoint.x(), self.startPoint.y(), self.endPoint.x(), self.endPoint.y(), pen)
+
             color = QColor(self.currentColor)
             color.setAlphaF(self.currentOpacity)
 
@@ -222,6 +246,10 @@ class DrawingApp(QMainWindow):
 
         self.colorPalette.colorList.itemClicked.connect(
             lambda: self.canvas.setColor(self.colorPalette.getSelectedColor()))
+
+        # Connect slider value changed signal to setEraserSize method
+        self.colorPalette.eraserSlider.valueChanged.connect(self.canvas.setEraserSize)
+
 
         self.dock = QDockWidget("Tools", self)
         self.dock.setWidget(self.sidebar)
