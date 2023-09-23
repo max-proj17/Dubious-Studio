@@ -1,8 +1,9 @@
 import sys
+import math
 from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, \
     QButtonGroup, QDockWidget, QColorDialog, QListWidget, QListWidgetItem, QComboBox, QLabel, QSlider
-from PyQt6.QtGui import QPainter, QPen, QColor
-from PyQt6.QtCore import Qt, QPoint, QSize, QRectF
+from PyQt6.QtGui import QPen, QColor, QPainterPath, QPainterPathStroker, QBrush
+from PyQt6.QtCore import Qt, QPoint, QSize, QPointF
 
 
 class ColorPalette(QWidget):
@@ -19,7 +20,7 @@ class ColorPalette(QWidget):
         self.addColorButton.clicked.connect(self.addColor)
 
         self.capStyleComboBox = QComboBox(self)
-        self.capStyleComboBox.addItems(["Flat", "Square", "Round"])
+        self.capStyleComboBox.addItems(["Flat", "Square", "Round", "Tapered"])
         self.layout.addWidget(QLabel("Cap Style:"))
         self.layout.addWidget(self.capStyleComboBox)
 
@@ -57,10 +58,8 @@ class DrawingCanvas(QGraphicsView):
         self.isDrawing = False
         self.currentColor = QColor(Qt.GlobalColor.black)
         self.currentTool = "draw"
-
         self.currentSize = 1
         self.currentOpacity = 1.0
-        self.currentShape = "Round"
         self.currentCapStyle = Qt.PenCapStyle.FlatCap
 
     def setTool(self, tool):
@@ -73,36 +72,48 @@ class DrawingCanvas(QGraphicsView):
         self.currentSize = size
 
     def setOpacity(self, opacity):
-        self.currentOpacity = opacity / 100.0  # Convert to a value between 0 and 1
-
-    def setShape(self, shape):
-        self.currentShape = shape
+        self.currentOpacity = opacity / 100.0
 
     def setCapStyle(self, capStyle):
         self.currentCapStyle = capStyle
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            #self.startPoint = event.position().toPoint()
-            self.startPoint = self.mapToScene((event.position().toPoint()))
+            self.startPoint = self.mapToScene(event.position().toPoint())
             self.endPoint = self.startPoint
             self.isDrawing = True
 
     def mouseMoveEvent(self, event):
         if self.isDrawing:
-            # self.endPoint = event.position().toPoint()
             self.endPoint = self.mapToScene(event.position().toPoint())
-            pen = QPen(self.currentColor)
-            ## testing this block below, it breaks da code
-            #pen = QPen(self.currentColor, self.currentSize)
-            #pen.setCapStyle(self.currentCapStyle)  # Set the current cap style
-            #pen.setOpacity(self.currentOpacity)
-            #until here
-            if self.currentTool == "erase":
-                pen.setColor(Qt.GlobalColor.white)
-                pen.setWidth(10)
-            self.scene().addLine(self.startPoint.x(), self.startPoint.y(), self.endPoint.x(), self.endPoint.y(), pen)
+            color = QColor(self.currentColor)
+            color.setAlphaF(self.currentOpacity)
+
+            if self.currentCapStyle == "Tapered":
+                path = QPainterPath(self.startPoint)
+                path.lineTo(self.endPoint)
+                distance = math.sqrt((self.startPoint.x() - self.endPoint.x())**2 + (self.startPoint.y() - self.endPoint.y())**2)
+                segments = max(int(distance), 1)
+                gradientPath = QPainterPath()
+                for i in range(segments):
+                    t = i / segments
+                    p = path.pointAtPercent(t)
+                    # Modified width calculation for smoother tapering
+                    width = self.currentSize * (1 - (2*t - 1)**2)  
+                    segmentStroker = QPainterPathStroker()
+                    segmentStroker.setWidth(width)
+                    segmentPath = QPainterPath(p)
+                    segmentPath.lineTo(path.pointAtPercent((i + 1) / segments))
+                    gradientPath.addPath(segmentStroker.createStroke(segmentPath))
+                self.scene().addPath(gradientPath, QPen(color), QBrush(color))
+            else:
+                pen = QPen(color, self.currentSize)
+                pen.setCapStyle(self.currentCapStyle)
+                self.scene().addLine(self.startPoint.x(), self.startPoint.y(), self.endPoint.x(), self.endPoint.y(), pen)
+
             self.startPoint = self.endPoint
+
+
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
@@ -113,16 +124,13 @@ class DrawingApp(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        # Create a white QGraphicsScene with 500x500 dimensions
         self.scene = QGraphicsScene(self)
         self.scene.setSceneRect(0, 0, 500, 500)
         self.scene.setBackgroundBrush(Qt.GlobalColor.white)
 
-        # Create the custom QGraphicsView for drawing
         self.canvas = DrawingCanvas(self.scene, self)
         self.setCentralWidget(self.canvas)
 
-        # Sidebar with color options and tools
         self.sidebar = QWidget()
         self.layout = QVBoxLayout(self.sidebar)
 
@@ -138,7 +146,6 @@ class DrawingApp(QMainWindow):
             self.layout.addWidget(btn)
             btn.clicked.connect(lambda checked, tool=tool: self.canvas.setTool(tool))
 
-        #connect sliders to drawing canvas
         self.colorPalette.sizeSlider.valueChanged.connect(self.canvas.setSize)
         self.colorPalette.opacitySlider.valueChanged.connect(self.canvas.setOpacity)
 
@@ -154,18 +161,16 @@ class DrawingApp(QMainWindow):
         self.setWindowTitle('Drawing Canvas')
         self.show()
 
-        # more drawing cap stuff
         self.colorPalette.capStyleComboBox.currentTextChanged.connect(self.setCapStyle)
 
     def setCapStyle(self, text):
         capStyles = {
             "Flat": Qt.PenCapStyle.FlatCap,
             "Square": Qt.PenCapStyle.SquareCap,
-            "Round": Qt.PenCapStyle.RoundCap
+            "Round": Qt.PenCapStyle.RoundCap,
+            "Tapered": "Tapered"
         }
         self.canvas.setCapStyle(capStyles.get(text, Qt.PenCapStyle.FlatCap))
-        # until here
-
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
