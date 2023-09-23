@@ -1,7 +1,8 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, QButtonGroup, QDockWidget, QColorDialog, QListWidget, QListWidgetItem, QGraphicsRectItem
+from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, QButtonGroup, QDockWidget, QColorDialog, QListWidget, QListWidgetItem, QGraphicsRectItem, QSlider, QLabel
 from PyQt6.QtGui import QPainter, QPen, QColor, QTransform, QBrush
 from PyQt6.QtCore import Qt, QPoint, QSize, QRectF
+from PyQt6.QtGui import QPainterPath
 
 
 class ColorPalette(QWidget):
@@ -16,6 +17,13 @@ class ColorPalette(QWidget):
         self.layout.addWidget(self.addColorButton)
 
         self.addColorButton.clicked.connect(self.addColor)
+
+        #eraser slider
+        self.eraserSlider = QSlider(Qt.Orientation.Horizontal, self)
+        self.eraserSlider.setMinimum(1)
+        self.eraserSlider.setMaximum(20)
+        self.layout.addWidget(QLabel("Eraser Size:"))
+        self.layout.addWidget(self.eraserSlider)
 
     def addColor(self):
         color = QColorDialog.getColor()
@@ -40,6 +48,39 @@ class DrawingCanvas(QGraphicsView):
         self.isDrawing = False
         self.currentColor = QColor(Qt.GlobalColor.black)
         self.currentTool = "draw"
+        self.currentEraserSize = 10;
+
+        def mouseMoveEvent(self, event):
+            if self.isDrawing:
+                # Get the current point
+                self.endPoint = self.mapToScene(event.position().toPoint())
+
+                # Get the bounds of the canvasItem
+                rect = self.canvasItem.mapToScene(self.canvasItem.rect()).boundingRect()
+
+                # Adjust the endPoint if it is outside the bounds of the canvasItem
+                if not rect.contains(self.endPoint):
+                    x = min(max(self.endPoint.x(), rect.left()), rect.right())
+                    y = min(max(self.endPoint.y(), rect.top()), rect.bottom())
+                    self.endPoint = QPointF(x, y)
+
+                # Draw the line
+                pen = QPen(self.currentColor)
+                if self.currentTool == "erase":
+                    pen.setColor(Qt.GlobalColor.white)
+                    pen.setWidth(10)
+                self.scene().addLine(self.startPoint.x(), self.startPoint.y(), self.endPoint.x(), self.endPoint.y(),
+                                     pen)
+                self.startPoint = self.endPoint
+            elif event.buttons() & Qt.MouseButton.RightButton:
+                delta = event.globalPosition().toPoint() - self.lastMousePosition
+                if event.modifiers() == Qt.KeyboardModifier.ShiftModifier:
+                    self.rotationAngle += delta.x() * 0.5
+                else:
+                    self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() - delta.x())
+                    self.verticalScrollBar().setValue(self.verticalScrollBar().value() - delta.y())
+                self.lastMousePosition = event.globalPosition().toPoint()
+                self.applyTransform()
 
         self.scaleFactor = 1.0
         self.rotationAngle = 0.0
@@ -63,6 +104,10 @@ class DrawingCanvas(QGraphicsView):
 
     def setColor(self, color):
         self.currentColor = QColor(color)
+
+    def setEraserSize(self, eraser):
+        self.currentEraserSize = eraser
+
 
     def wheelEvent(self, event):
         if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
@@ -94,13 +139,28 @@ class DrawingCanvas(QGraphicsView):
 
     def mouseMoveEvent(self, event):
         if self.isDrawing:
+            # Get the current point
             self.endPoint = self.mapToScene(event.position().toPoint())
-            pen = QPen(self.currentColor)
-            if self.currentTool == "erase":
-                pen.setColor(Qt.GlobalColor.white)
-                pen.setWidth(10)
-            self.scene().addLine(self.startPoint.x(), self.startPoint.y(), self.endPoint.x(), self.endPoint.y(), pen)
-            self.startPoint = self.endPoint
+
+            # Get the bounds of the canvasItem
+            rect = self.canvasItem.rect()
+
+            # Map the start and end points to the canvasItem's coordinate system
+            startPointInItem = self.canvasItem.mapFromScene(self.startPoint)
+            endPointInItem = self.canvasItem.mapFromScene(self.endPoint)
+
+            # Check if the startPoint and endPoint are within the bounds of the canvas item
+            if rect.contains(startPointInItem) and rect.contains(endPointInItem):
+                pen = QPen(self.currentColor)
+                if self.currentTool == "erase":
+                    pen.setColor(Qt.GlobalColor.white)
+                    pen.setWidth(10)
+                self.scene().addLine(self.startPoint.x(), self.startPoint.y(), self.endPoint.x(), self.endPoint.y(),
+                                     pen)
+                self.startPoint = self.endPoint
+            else:
+                # Reset the startPoint when the mouse moves outside the canvas
+                self.startPoint = self.endPoint
         elif event.buttons() & Qt.MouseButton.RightButton:
             delta = event.globalPosition().toPoint() - self.lastMousePosition
             if event.modifiers() == Qt.KeyboardModifier.ShiftModifier:
@@ -160,6 +220,10 @@ class DrawingApp(QMainWindow):
 
         self.colorPalette.colorList.itemClicked.connect(
             lambda: self.canvas.setColor(self.colorPalette.getSelectedColor()))
+
+        # Connect slider value changed signal to setEraserSize method
+        self.colorPalette.eraserSlider.valueChanged.connect(self.canvas.setEraserSize)
+
 
         self.dock = QDockWidget("Tools", self)
         self.dock.setWidget(self.sidebar)
