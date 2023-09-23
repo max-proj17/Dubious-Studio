@@ -1,5 +1,5 @@
 import sys, os
-from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, QButtonGroup, QDockWidget, QColorDialog, QListWidget, QListWidgetItem, QSlider, QLabel
+from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, QButtonGroup, QDockWidget, QColorDialog, QListWidget, QListWidgetItem, QSlider, QLabel, QHBoxLayout
 from PyQt6.QtGui import QPainter, QPen, QColor, QPalette
 from PyQt6.QtCore import Qt, QPoint, QSize, pyqtSignal
 
@@ -25,29 +25,100 @@ class HSVSliders(QWidget):
         self.valueSlider.setMaximum(255)  # Value range: 0-255
         self.valueSlider.valueChanged.connect(self.updateColor)
 
-        self.colorPreview = QLabel(self)
-        self.colorPreview.setFixedSize(QSize(100, 50))
-        self.colorPreview.setAutoFillBackground(True)
-
         self.layout.addWidget(QLabel("Hue"))
         self.layout.addWidget(self.hueSlider)
         self.layout.addWidget(QLabel("Saturation"))
         self.layout.addWidget(self.saturationSlider)
         self.layout.addWidget(QLabel("Value"))
         self.layout.addWidget(self.valueSlider)
-        self.layout.addWidget(self.colorPreview)
-
-        self.updateColor()
 
     def updateColor(self):
         hue = self.hueSlider.value()
         saturation = self.saturationSlider.value()
         value = self.valueSlider.value()
         color = QColor.fromHsv(hue, saturation, value)
-        self.colorPreview.setStyleSheet(f"background-color: {color.name()}")
+        self.parent().colorPreview.setStyleSheet(f"background-color: {color.name()}")
         self.colorSelected.emit(color)
 
     colorSelected = pyqtSignal(QColor)
+
+class RGBSliders(QWidget):
+    def __init__(self, parent=None):
+        super(RGBSliders, self).__init__(parent)
+        self.layout = QVBoxLayout(self)
+
+        self.redSlider = QSlider(Qt.Orientation.Horizontal, self)
+        self.redSlider.setMaximum(255)
+        self.redSlider.valueChanged.connect(self.updateColor)
+
+        self.greenSlider = QSlider(Qt.Orientation.Horizontal, self)
+        self.greenSlider.setMaximum(255)
+        self.greenSlider.valueChanged.connect(self.updateColor)
+
+        self.blueSlider = QSlider(Qt.Orientation.Horizontal, self)
+        self.blueSlider.setMaximum(255)
+        self.blueSlider.valueChanged.connect(self.updateColor)
+
+        self.layout.addWidget(QLabel("Red"))
+        self.layout.addWidget(self.redSlider)
+        self.layout.addWidget(QLabel("Green"))
+        self.layout.addWidget(self.greenSlider)
+        self.layout.addWidget(QLabel("Blue"))
+        self.layout.addWidget(self.blueSlider)
+
+    def updateColor(self):
+        red = self.redSlider.value()
+        green = self.greenSlider.value()
+        blue = self.blueSlider.value()
+        color = QColor(red, green, blue)
+        self.parent().colorPreview.setStyleSheet(f"background-color: {color.name()}")
+        self.colorSelected.emit(color)
+
+    colorSelected = pyqtSignal(QColor)
+
+class ColorSliders(QWidget):
+    def __init__(self, parent=None):
+        super(ColorSliders, self).__init__(parent)
+        self.layout = QVBoxLayout(self)  # Change from QHBoxLayout to QVBoxLayout
+
+        self.hsvRgbLayout = QHBoxLayout()  # New layout for HSV and RGB sliders
+        self.layout.addLayout(self.hsvRgbLayout)  # Add this layout to the main layout
+
+        self.hsvSliders = HSVSliders(self)
+        self.rgbSliders = RGBSliders(self)
+
+        self.hsvRgbLayout.addWidget(self.hsvSliders)  # Add to the new layout
+        self.hsvRgbLayout.addWidget(self.rgbSliders)  # Add to the new layout
+
+        self.colorPreview = QLabel(self)
+        self.colorPreview.setFixedSize(QSize(100, 50))
+        self.colorPreview.setAutoFillBackground(True)
+        self.layout.addWidget(self.colorPreview)
+        self.layout.setAlignment(self.colorPreview, Qt.AlignmentFlag.AlignCenter)  # Center the color preview
+
+        self.hsvSliders.colorSelected.connect(self.updateFromHSV)
+        self.rgbSliders.colorSelected.connect(self.updateFromRGB)
+        
+        self.updating = False
+        
+        self.hsvSliders.updateColor()
+        self.rgbSliders.updateColor()
+
+    def updateFromHSV(self, color):
+        if not self.updating:
+            self.updating = True
+            self.rgbSliders.redSlider.setValue(color.red())
+            self.rgbSliders.greenSlider.setValue(color.green())
+            self.rgbSliders.blueSlider.setValue(color.blue())
+            self.updating = False
+
+    def updateFromRGB(self, color):
+        if not self.updating:
+            self.updating = True
+            self.hsvSliders.hueSlider.setValue(color.hue())
+            self.hsvSliders.saturationSlider.setValue(color.saturation())
+            self.hsvSliders.valueSlider.setValue(color.value())
+            self.updating = False
 
 class ColorPalette(QWidget):
     def __init__(self, hsvSliders, parent=None):
@@ -128,12 +199,13 @@ class DrawingApp(QMainWindow):
         self.sidebar = QWidget()
         self.layout = QVBoxLayout(self.sidebar)
 
-        # Integrate HSV Sliders
-        self.hsvSliders = HSVSliders(self.sidebar)
-        self.layout.addWidget(self.hsvSliders)
-        self.hsvSliders.colorSelected.connect(lambda color: self.canvas.setColor(color))
+        # HSV and RGB sliders
+        self.colorSliders = ColorSliders(self.sidebar)
+        self.layout.addWidget(self.colorSliders)
+        self.colorSliders.hsvSliders.colorSelected.connect(lambda color: self.canvas.setColor(color))
+        self.colorSliders.rgbSliders.colorSelected.connect(lambda color: self.canvas.setColor(color))
 
-        self.colorPalette = ColorPalette(self.hsvSliders, self.sidebar)  # Pass the HSVSliders instance
+        self.colorPalette = ColorPalette(self.colorSliders, self.sidebar)  # Pass the HSVSliders instance
         self.layout.addWidget(self.colorPalette)
 
         # Tools
