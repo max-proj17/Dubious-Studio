@@ -1,11 +1,19 @@
 import sys, os
 from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, QButtonGroup, QDockWidget, QListWidget, QListWidgetItem, QSlider, QLabel, QHBoxLayout, QStyledItemDelegate, QStyle
-from PyQt6.QtGui import QPainter, QPen, QColor, QPalette
+from PyQt6.QtGui import QPainter, QPen, QColor, QPalette, QIcon
 from PyQt6.QtCore import Qt, QPoint, QSize, pyqtSignal
 
 # For when/if we use the lib folder
 # root_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # sys.path.append(root_folder)
+
+# Needed for color palette
+class NonDraggableListWidget(QListWidget):
+    def __init__(self, parent=None):
+        super(NonDraggableListWidget, self).__init__(parent)
+
+    def startDrag(self, actions):
+        pass
 
 class HSVSliders(QWidget):
     def __init__(self, parent=None):
@@ -149,7 +157,10 @@ class ColorPalette(QWidget):
         # Store the colorSliders reference
         self.colorSliders = colorSliders
 
-        self.colorList = QListWidget(self)
+        self.colorList = NonDraggableListWidget(self)
+        self.colorList.setDragDropMode(QListWidget.DragDropMode.NoDragDrop)
+        self.colorList.setDragEnabled(False)
+        self.colorList.setDragDropOverwriteMode(False)
         self.colorList.setViewMode(QListWidget.ViewMode.IconMode)
         self.colorList.setGridSize(QSize(60, 60))
         self.colorList.setFlow(QListWidget.Flow.LeftToRight)
@@ -298,7 +309,8 @@ class DrawingApp(QMainWindow):
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
 
         self.setGeometry(100, 100, 620, 520)
-        self.setWindowTitle('Drawing Canvas')
+        self.setWindowTitle('Dubious Studio')
+        self.setWindowIcon(QIcon("resources/icon.png"))
         self.show()
 
     def selectToolOrColor(self, tool):
