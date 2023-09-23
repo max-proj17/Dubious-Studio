@@ -1,7 +1,12 @@
-import sys
+import sys, os
 from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, QButtonGroup, QDockWidget, QColorDialog, QListWidget, QListWidgetItem, QSlider, QLabel
 from PyQt6.QtGui import QPainter, QPen, QColor, QPalette
 from PyQt6.QtCore import Qt, QPoint, QSize, pyqtSignal
+
+# For when/if we use the lib folder
+# root_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# sys.path.append(root_folder)
+
 
 class HSVSliders(QWidget):
     def __init__(self, parent=None):
@@ -65,29 +70,11 @@ class ColorPalette(QWidget):
         item.setSizeHint(QSize(50, 50))
         self.colorList.addItem(item)
 
-
     def getSelectedColor(self):
         item = self.colorList.currentItem()
         if item:
             return item.background().color()
         return None
-
-class ColorWheel(QWidget):
-    colorSelected = pyqtSignal(QColor)
-    
-    def __init__(self, parent=None):
-        super(ColorWheel, self).__init__(parent)
-        self.layout = QVBoxLayout(self)
-
-        # Create a button to open the QColorDialog
-        self.openColorDialogButton = QPushButton("Open Color Wheel", self)
-        self.layout.addWidget(self.openColorDialogButton)
-        self.openColorDialogButton.clicked.connect(self.openColorPicker)
-
-    def openColorPicker(self):
-        color = QColorDialog.getColor()
-        if color.isValid():
-            self.colorSelected.emit(color)
 
 class DrawingCanvas(QGraphicsView):
     def __init__(self, scene, parent=None):
@@ -176,7 +163,6 @@ class DrawingApp(QMainWindow):
             self.canvas.setTool("draw")
         elif tool == "erase":
             self.canvas.setTool("erase")
-
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
