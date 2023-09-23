@@ -48,13 +48,15 @@ class DrawingCanvas(QGraphicsView):
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            self.startPoint = event.position().toPoint()
+            # self.startPoint = event.position().toPoint()
+            self.startPoint = self.mapToScene((event.position().toPoint()))
             self.endPoint = self.startPoint
             self.isDrawing = True
 
     def mouseMoveEvent(self, event):
         if self.isDrawing:
-            self.endPoint = event.position().toPoint()
+            # self.endPoint = event.position().toPoint()
+            self.endPoint = self.mapToScene(event.position().toPoint())
             pen = QPen(self.currentColor)
             if self.currentTool == "erase":
                 pen.setColor(Qt.GlobalColor.white)
