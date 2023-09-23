@@ -94,9 +94,11 @@ class DrawingCanvas(QGraphicsView):
             self.endPoint = self.mapToScene(event.position().toPoint())
             pen = QPen(self.currentColor)
             ## testing this block below, it breaks da code
-            #pen = QPen(self.currentColor, self.currentSize)
+            #pen = QPen(self.currentColor, self.currentSize, self.currentOpacity)
             #pen.setCapStyle(self.currentCapStyle)  # Set the current cap style
             #pen.setOpacity(self.currentOpacity)
+            pen.setWidth(self.currentSize)  # Set the pen width to the current size
+            pen.setCapStyle(self.currentCapStyle)  # Set the current cap style
             #until here
             if self.currentTool == "erase":
                 pen.setColor(Qt.GlobalColor.white)
