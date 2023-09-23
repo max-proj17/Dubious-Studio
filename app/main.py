@@ -1,5 +1,5 @@
 import sys, os, math
-from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, QButtonGroup, QDockWidget, QListWidget, QListWidgetItem, QSlider, QLabel, QHBoxLayout, QStyledItemDelegate, QStyle
+from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, QButtonGroup, QDockWidget, QListWidget, QListWidgetItem, QSlider, QLabel, QHBoxLayout, QStyledItemDelegate, QStyle, QSpinBox
 from PyQt6.QtGui import QPainter, QPainterPath, QPen, QColor, QPalette, QIcon, QImage, QBrush, QRadialGradient
 from PyQt6.QtCore import Qt, QPoint, QPointF, QSize, pyqtSignal
 
@@ -23,28 +23,52 @@ class HSVSliders(QWidget):
         self.hueSlider = QSlider(Qt.Orientation.Horizontal, self)
         self.hueSlider.setMaximum(359)  # Hue range: 0-359
         self.hueSlider.valueChanged.connect(self.updateColor)
+        self.hueSpinBox = QSpinBox(self)
+        self.hueSpinBox.setMinimum(0)
+        self.hueSpinBox.setMaximum(359)
 
         self.saturationSlider = QSlider(Qt.Orientation.Horizontal, self)
         self.saturationSlider.setMaximum(255)  # Saturation range: 0-255
         self.saturationSlider.valueChanged.connect(self.updateColor)
+        self.saturationSpinBox = QSpinBox(self)
+        self.saturationSpinBox.setMinimum(0)
+        self.saturationSpinBox.setMaximum(255)
 
         self.valueSlider = QSlider(Qt.Orientation.Horizontal, self)
         self.valueSlider.setMaximum(255)  # Value range: 0-255
         self.valueSlider.valueChanged.connect(self.updateColor)
+        self.valueSpinBox = QSpinBox(self)
+        self.valueSpinBox.setMinimum(0)
+        self.valueSpinBox.setMaximum(255)
 
         self.layout.addWidget(QLabel("Hue"))
         self.layout.addWidget(self.hueSlider)
+        self.layout.addWidget(self.hueSpinBox)
         self.layout.addWidget(QLabel("Saturation"))
         self.layout.addWidget(self.saturationSlider)
+        self.layout.addWidget(self.saturationSpinBox)
         self.layout.addWidget(QLabel("Value"))
         self.layout.addWidget(self.valueSlider)
+        self.layout.addWidget(self.valueSpinBox)
+        
+        self.hueSlider.valueChanged.connect(self.hueSpinBox.setValue)
+        self.hueSpinBox.valueChanged.connect(self.hueSlider.setValue)
+        self.saturationSlider.valueChanged.connect(self.saturationSpinBox.setValue)
+        self.saturationSpinBox.valueChanged.connect(self.saturationSlider.setValue)
+        self.valueSlider.valueChanged.connect(self.valueSpinBox.setValue)
+        self.valueSpinBox.valueChanged.connect(self.valueSlider.setValue)
+        
+        self.hueSpinBox.setValue(0)
+        self.saturationSpinBox.setValue(255)
+        self.valueSpinBox.setValue(255)
 
     def updateColor(self):
         hue = self.hueSlider.value()
         saturation = self.saturationSlider.value()
         value = self.valueSlider.value()
         color = QColor.fromHsv(hue, saturation, value)
-        self.parent().colorPreview.setStyleSheet(f"background-color: {color.name()}")
+        # the next line used to work, but now it doesn't? just keep it in case we need it later.
+        # self.parent().colorPreview.setStyleSheet(f"background-color: {color.name()}")
         self.colorSelected.emit(color)
 
     colorSelected = pyqtSignal(QColor)
@@ -57,21 +81,43 @@ class RGBSliders(QWidget):
         self.redSlider = QSlider(Qt.Orientation.Horizontal, self)
         self.redSlider.setMaximum(255)
         self.redSlider.valueChanged.connect(self.updateColor)
+        self.redSpinBox = QSpinBox(self)
+        self.redSpinBox.setMinimum(0)
+        self.redSpinBox.setMaximum(255)
+        self.redSpinBox.setValue(255)
 
         self.greenSlider = QSlider(Qt.Orientation.Horizontal, self)
         self.greenSlider.setMaximum(255)
         self.greenSlider.valueChanged.connect(self.updateColor)
+        self.greenSpinBox = QSpinBox(self)
+        self.greenSpinBox.setMinimum(0)
+        self.greenSpinBox.setMaximum(255)
+        self.greenSpinBox.setValue(255)
 
         self.blueSlider = QSlider(Qt.Orientation.Horizontal, self)
         self.blueSlider.setMaximum(255)
         self.blueSlider.valueChanged.connect(self.updateColor)
+        self.blueSpinBox = QSpinBox(self)
+        self.blueSpinBox.setMinimum(0)
+        self.blueSpinBox.setMaximum(255)
+        self.blueSpinBox.setValue(255)
 
         self.layout.addWidget(QLabel("Red"))
         self.layout.addWidget(self.redSlider)
+        self.layout.addWidget(self.redSpinBox)
         self.layout.addWidget(QLabel("Green"))
         self.layout.addWidget(self.greenSlider)
+        self.layout.addWidget(self.greenSpinBox)
         self.layout.addWidget(QLabel("Blue"))
         self.layout.addWidget(self.blueSlider)
+        self.layout.addWidget(self.blueSpinBox)
+        
+        self.redSlider.valueChanged.connect(self.redSpinBox.setValue)
+        self.redSpinBox.valueChanged.connect(self.redSlider.setValue)
+        self.greenSlider.valueChanged.connect(self.greenSpinBox.setValue)
+        self.greenSpinBox.valueChanged.connect(self.greenSlider.setValue)
+        self.blueSlider.valueChanged.connect(self.blueSpinBox.setValue)
+        self.blueSpinBox.valueChanged.connect(self.blueSlider.setValue)
 
     def updateColor(self):
         red = self.redSlider.value()
@@ -302,8 +348,8 @@ class HSVColorSpaceCircle(QWidget):
         indicator_radius = radius * saturation
         indicator_x = center.x() + indicator_radius * math.cos(math.radians(hue))
         indicator_y = center.y() + indicator_radius * math.sin(math.radians(hue))
-        painter.setPen(QPen(Qt.GlobalColor.black, 3))
-        painter.drawPoint(QPoint(round(indicator_x), round(indicator_y)))
+        painter.setPen(QPen(Qt.GlobalColor.black, 1))
+        painter.drawEllipse(QPoint(round(indicator_x), round(indicator_y)), 5, 5)
 
         painter.end()
 
