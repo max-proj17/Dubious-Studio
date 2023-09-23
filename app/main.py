@@ -1,7 +1,8 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, QButtonGroup, QDockWidget, QColorDialog, QListWidget, QListWidgetItem, QGraphicsRectItem
+from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, QButtonGroup, QDockWidget, QColorDialog, QListWidget, QListWidgetItem, QGraphicsRectItem, QSlider, QLabel
 from PyQt6.QtGui import QPainter, QPen, QColor, QTransform, QBrush
 from PyQt6.QtCore import Qt, QPoint, QSize, QRectF
+
 
 
 class ColorPalette(QWidget):
@@ -16,6 +17,13 @@ class ColorPalette(QWidget):
         self.layout.addWidget(self.addColorButton)
 
         self.addColorButton.clicked.connect(self.addColor)
+
+        #eraser slider
+        self.eraserSlider = QSlider(Qt.Orientation.Horizontal, self)
+        self.eraserSlider.setMinimum(1)
+        self.eraserSlider.setMaximum(20)
+        self.layout.addWidget(QLabel("Eraser Size:"))
+        self.layout.addWidget(self.eraserSlider)
 
     def addColor(self):
         color = QColorDialog.getColor()
@@ -40,6 +48,7 @@ class DrawingCanvas(QGraphicsView):
         self.isDrawing = False
         self.currentColor = QColor(Qt.GlobalColor.black)
         self.currentTool = "draw"
+        self.currentEraserSize = 10
 
         self.scaleFactor = 1.0
         self.rotationAngle = 0.0
@@ -63,6 +72,10 @@ class DrawingCanvas(QGraphicsView):
 
     def setColor(self, color):
         self.currentColor = QColor(color)
+
+    def setEraserSize(self, eraser):
+        self.currentEraserSize = eraser
+
 
     def wheelEvent(self, event):
         if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
@@ -96,9 +109,10 @@ class DrawingCanvas(QGraphicsView):
         if self.isDrawing:
             self.endPoint = self.mapToScene(event.position().toPoint())
             pen = QPen(self.currentColor)
+
             if self.currentTool == "erase":
                 pen.setColor(Qt.GlobalColor.white)
-                pen.setWidth(10)
+                pen.setWidth(self.currentEraserSize)  # Use the current eraser size
             self.scene().addLine(self.startPoint.x(), self.startPoint.y(), self.endPoint.x(), self.endPoint.y(), pen)
             self.startPoint = self.endPoint
         elif event.buttons() & Qt.MouseButton.RightButton:
@@ -160,6 +174,10 @@ class DrawingApp(QMainWindow):
 
         self.colorPalette.colorList.itemClicked.connect(
             lambda: self.canvas.setColor(self.colorPalette.getSelectedColor()))
+
+        # Connect slider value changed signal to setEraserSize method
+        self.colorPalette.eraserSlider.valueChanged.connect(self.canvas.setEraserSize)
+
 
         self.dock = QDockWidget("Tools", self)
         self.dock.setWidget(self.sidebar)
