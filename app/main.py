@@ -1,12 +1,11 @@
 import sys, os
-from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, QButtonGroup, QDockWidget, QColorDialog, QListWidget, QListWidgetItem, QSlider, QLabel, QHBoxLayout
+from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, QButtonGroup, QDockWidget, QListWidget, QListWidgetItem, QSlider, QLabel, QHBoxLayout, QStyledItemDelegate, QStyle
 from PyQt6.QtGui import QPainter, QPen, QColor, QPalette
 from PyQt6.QtCore import Qt, QPoint, QSize, pyqtSignal
 
 # For when/if we use the lib folder
 # root_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # sys.path.append(root_folder)
-
 
 class HSVSliders(QWidget):
     def __init__(self, parent=None):
@@ -103,6 +102,17 @@ class ColorSliders(QWidget):
         
         self.hsvSliders.updateColor()
         self.rgbSliders.updateColor()
+        
+    def setColor(self, color):
+        # Update HSV sliders
+        self.hsvSliders.hueSlider.setValue(color.hue())
+        self.hsvSliders.saturationSlider.setValue(color.saturation())
+        self.hsvSliders.valueSlider.setValue(color.value())
+        
+        # Update RGB sliders
+        self.rgbSliders.redSlider.setValue(color.red())
+        self.rgbSliders.greenSlider.setValue(color.green())
+        self.rgbSliders.blueSlider.setValue(color.blue())
 
     def updateFromHSV(self, color):
         if not self.updating:
@@ -120,32 +130,91 @@ class ColorSliders(QWidget):
             self.hsvSliders.valueSlider.setValue(color.value())
             self.updating = False
 
+class ColorItemDelegate(QStyledItemDelegate):
+    def paint(self, painter, option, index):
+        super().paint(painter, option, index)
+        
+        # Check if the item is selected
+        if option.state & QStyle.StateFlag.State_Selected:
+            # Set the color and width of the border
+            painter.setPen(QPen(Qt.GlobalColor.black, 2))
+            # Draw a rectangle around the item
+            painter.drawRect(option.rect.adjusted(1, 1, -1, -1))
+
 class ColorPalette(QWidget):
-    def __init__(self, hsvSliders, parent=None):
+    def __init__(self, colorSliders, parent=None, presets=None):
         super(ColorPalette, self).__init__(parent)
         self.layout = QVBoxLayout(self)
-        self.hsvSliders = hsvSliders
+        
+        # Store the colorSliders reference
+        self.colorSliders = colorSliders
 
         self.colorList = QListWidget(self)
+        self.colorList.setViewMode(QListWidget.ViewMode.IconMode)
+        self.colorList.setGridSize(QSize(60, 60))
+        self.colorList.setFlow(QListWidget.Flow.LeftToRight)
+        self.colorList.setWrapping(True)
+        self.colorList.setSelectionMode(QListWidget.SelectionMode.SingleSelection)  # Set selection mode
+        self.colorList.setItemDelegate(ColorItemDelegate(self.colorList))  # Set the custom delegate
         self.layout.addWidget(self.colorList)
+        
+        if presets:
+            self.addPresetColors(presets)
 
+        # Buttons layout
+        self.buttonsLayout = QHBoxLayout()
         self.addColorButton = QPushButton("Add Selected Color", self)
-        self.layout.addWidget(self.addColorButton)
+        self.removeColorButton = QPushButton("Remove Color", self)
+        self.buttonsLayout.addWidget(self.addColorButton)
+        self.buttonsLayout.addWidget(self.removeColorButton)
+        self.layout.addLayout(self.buttonsLayout)
 
         self.addColorButton.clicked.connect(self.addColor)
+        self.removeColorButton.clicked.connect(self.removeColor)
+        self.colorList.itemClicked.connect(self.updateSelectedColorAppearance)
+
+    def updateSelectedColorAppearance(self, item):
+        selected_color = item.background().color()
+        
+        # Update the color preview in the sliders widget
+        self.colorSliders.colorPreview.setStyleSheet(f"background-color: {selected_color.name()}")
+        
+        # Update the sliders to match the selected color
+        self.colorSliders.setColor(selected_color)
 
     def addColor(self):
-        color = self.hsvSliders.colorPreview.palette().color(QPalette.ColorRole.Window)
+        color = self.colorSliders.colorPreview.palette().color(QPalette.ColorRole.Window)
         item = QListWidgetItem()
         item.setBackground(color)
         item.setSizeHint(QSize(50, 50))
         self.colorList.addItem(item)
+        
+    def removeColor(self):
+        currentRow = self.colorList.currentRow()
+        if currentRow != -1:  # Check if a color is selected
+            self.colorList.takeItem(currentRow)
 
     def getSelectedColor(self):
         item = self.colorList.currentItem()
         if item:
             return item.background().color()
         return None
+    
+    def updateSlidersAndPreview(self, item):
+        selected_color = item.background().color()
+        
+        # Update the color preview in the sliders widget
+        self.colorSliders.colorPreview.setStyleSheet(f"background-color: {selected_color.name()}")
+        
+        # Update the sliders to match the selected color
+        self.colorSliders.setColor(selected_color)
+        
+    def addPresetColors(self, colors):
+        for color in colors:
+            item = QListWidgetItem()
+            item.setBackground(QColor(color))
+            item.setSizeHint(QSize(50, 50))
+            self.colorList.addItem(item)
 
 class DrawingCanvas(QGraphicsView):
     def __init__(self, scene, parent=None):
@@ -205,7 +274,9 @@ class DrawingApp(QMainWindow):
         self.colorSliders.hsvSliders.colorSelected.connect(lambda color: self.canvas.setColor(color))
         self.colorSliders.rgbSliders.colorSelected.connect(lambda color: self.canvas.setColor(color))
 
-        self.colorPalette = ColorPalette(self.colorSliders, self.sidebar)  # Pass the HSVSliders instance
+        # Presets can be an array of any length of hex codes "#xxxxxx"
+        presets = ["#5A5A5A", "#FFD1DC", "#A2CFFE", "#FFFFB3", "#B2FFB2", "#E6CCFF", "#FFDAB9", "#B5EAD7", "#FFB6B9"]
+        self.colorPalette = ColorPalette(self.colorSliders, self.sidebar, presets=presets)
         self.layout.addWidget(self.colorPalette)
 
         # Tools
