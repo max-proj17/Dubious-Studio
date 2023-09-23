@@ -69,6 +69,16 @@ class DrawingCanvas(QGraphicsView):
             delta = event.angleDelta().y()
             factor = 1.1 if delta > 0 else 0.9
             self.scaleFactor *= factor
+
+            # Get the position of the mouse cursor relative to the view
+            cursor_pos = event.position().toPoint()
+            # Map the cursor position to scene coordinates
+            scene_pos = self.mapToScene(cursor_pos)
+
+            # Adjust the view's center to zoom in/out at the cursor position
+            view_center = self.mapToScene(self.viewport().rect().center())
+            self.centerOn(view_center + (scene_pos - view_center) * (1 - factor))
+
             self.applyTransform()
 
     def mousePressEvent(self, event):
@@ -114,8 +124,10 @@ class DrawingCanvas(QGraphicsView):
         self.resetTransform()
         # Apply transformations to the canvas item
         transform = QTransform()
-        transform.scale(self.scaleFactor, self.scaleFactor)
+        transform.translate(self.canvasItem.rect().width() / 2, self.canvasItem.rect().height() / 2)
         transform.rotate(self.rotationAngle)
+        transform.scale(self.scaleFactor, self.scaleFactor)
+        transform.translate(-self.canvasItem.rect().width() / 2, -self.canvasItem.rect().height() / 2)
         self.canvasItem.setTransform(transform)
 
 
