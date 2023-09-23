@@ -1,2 +1,2 @@
 # Dubious-Studio
-This repo contains code or my hackathon project Dubious Studio
+This repo contains code for our hackathon project Dubious Studio!
