@@ -89,16 +89,26 @@ class DrawingCanvas(QGraphicsView):
             self.isDrawing = True
 
     def mouseMoveEvent(self, event):
+
         if self.isDrawing:
-            # self.endPoint = event.position().toPoint()
+
             self.endPoint = self.mapToScene(event.position().toPoint())
-            pen = QPen(self.currentColor)
-            pen.setWidth(self.currentSize)  # Set the pen width to the current size
+
+            color = QColor(self.currentColor)
+
+            color.setAlphaF(self.currentOpacity)  # Set the opacity on the QColor object
+
+            pen = QPen(color, self.currentSize)
+
             pen.setCapStyle(self.currentCapStyle)  # Set the current cap style
+
             if self.currentTool == "erase":
                 pen.setColor(Qt.GlobalColor.white)
+
                 pen.setWidth(10)
+
             self.scene().addLine(self.startPoint.x(), self.startPoint.y(), self.endPoint.x(), self.endPoint.y(), pen)
+
             self.startPoint = self.endPoint
 
     def mouseReleaseEvent(self, event):
