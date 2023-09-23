@@ -98,7 +98,7 @@ class DrawingCanvas(QGraphicsView):
                 for i in range(segments):
                     t = i / segments
                     p = path.pointAtPercent(t)
-                    # Modified width calculation for smoother tapering
+                    # Modified width calculation for sharper tapering
                     width = self.currentSize * (1 - (2*t - 1)**2)  
                     segmentStroker = QPainterPathStroker()
                     segmentStroker.setWidth(width)
@@ -109,6 +109,9 @@ class DrawingCanvas(QGraphicsView):
             else:
                 pen = QPen(color, self.currentSize)
                 pen.setCapStyle(self.currentCapStyle)
+                if self.currentTool == "erase":
+                    pen.setColor(Qt.GlobalColor.white)
+                    pen.setWidth(10)
                 self.scene().addLine(self.startPoint.x(), self.startPoint.y(), self.endPoint.x(), self.endPoint.y(), pen)
 
             self.startPoint = self.endPoint
