@@ -1,7 +1,8 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, QButtonGroup, QDockWidget, QColorDialog, QListWidget, QListWidgetItem
+from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, \
+    QButtonGroup, QDockWidget, QColorDialog, QListWidget, QListWidgetItem, QComboBox, QLabel, QSlider
 from PyQt6.QtGui import QPainter, QPen, QColor
-from PyQt6.QtCore import Qt, QPoint, QSize
+from PyQt6.QtCore import Qt, QPoint, QSize, QRectF
 
 
 class ColorPalette(QWidget):
@@ -16,6 +17,23 @@ class ColorPalette(QWidget):
         self.layout.addWidget(self.addColorButton)
 
         self.addColorButton.clicked.connect(self.addColor)
+
+        self.capStyleComboBox = QComboBox(self)
+        self.capStyleComboBox.addItems(["Flat", "Square", "Round"])
+        self.layout.addWidget(QLabel("Cap Style:"))
+        self.layout.addWidget(self.capStyleComboBox)
+
+        self.sizeSlider = QSlider(Qt.Orientation.Horizontal, self)
+        self.sizeSlider.setMinimum(1)
+        self.sizeSlider.setMaximum(20)
+        self.layout.addWidget(QLabel("Size:"))
+        self.layout.addWidget(self.sizeSlider)
+
+        self.opacitySlider = QSlider(Qt.Orientation.Horizontal, self)
+        self.opacitySlider.setMinimum(1)
+        self.opacitySlider.setMaximum(100)
+        self.layout.addWidget(QLabel("Opacity:"))
+        self.layout.addWidget(self.opacitySlider)
 
     def addColor(self):
         color = QColorDialog.getColor()
@@ -40,15 +58,32 @@ class DrawingCanvas(QGraphicsView):
         self.currentColor = QColor(Qt.GlobalColor.black)
         self.currentTool = "draw"
 
+        self.currentSize = 1
+        self.currentOpacity = 1.0
+        self.currentShape = "Round"
+        self.currentCapStyle = Qt.PenCapStyle.FlatCap
+
     def setTool(self, tool):
         self.currentTool = tool
 
     def setColor(self, color):
         self.currentColor = QColor(color)
 
+    def setSize(self, size):
+        self.currentSize = size
+
+    def setOpacity(self, opacity):
+        self.currentOpacity = opacity / 100.0  # Convert to a value between 0 and 1
+
+    def setShape(self, shape):
+        self.currentShape = shape
+
+    def setCapStyle(self, capStyle):
+        self.currentCapStyle = capStyle
+
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            # self.startPoint = event.position().toPoint()
+            #self.startPoint = event.position().toPoint()
             self.startPoint = self.mapToScene((event.position().toPoint()))
             self.endPoint = self.startPoint
             self.isDrawing = True
@@ -58,6 +93,11 @@ class DrawingCanvas(QGraphicsView):
             # self.endPoint = event.position().toPoint()
             self.endPoint = self.mapToScene(event.position().toPoint())
             pen = QPen(self.currentColor)
+            ## testing this block below, it breaks da code
+            #pen = QPen(self.currentColor, self.currentSize)
+            #pen.setCapStyle(self.currentCapStyle)  # Set the current cap style
+            #pen.setOpacity(self.currentOpacity)
+            #until here
             if self.currentTool == "erase":
                 pen.setColor(Qt.GlobalColor.white)
                 pen.setWidth(10)
@@ -67,6 +107,7 @@ class DrawingCanvas(QGraphicsView):
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             self.isDrawing = False
+
 
 class DrawingApp(QMainWindow):
     def __init__(self):
@@ -97,6 +138,10 @@ class DrawingApp(QMainWindow):
             self.layout.addWidget(btn)
             btn.clicked.connect(lambda checked, tool=tool: self.canvas.setTool(tool))
 
+        #connect sliders to drawing canvas
+        self.colorPalette.sizeSlider.valueChanged.connect(self.canvas.setSize)
+        self.colorPalette.opacitySlider.valueChanged.connect(self.canvas.setOpacity)
+
         self.toolButtons.buttons()[0].setChecked(True)
 
         self.colorPalette.colorList.itemClicked.connect(lambda: self.canvas.setColor(self.colorPalette.getSelectedColor()))
@@ -108,6 +153,19 @@ class DrawingApp(QMainWindow):
         self.setGeometry(100, 100, 620, 520)
         self.setWindowTitle('Drawing Canvas')
         self.show()
+
+        # more drawing cap stuff
+        self.colorPalette.capStyleComboBox.currentTextChanged.connect(self.setCapStyle)
+
+    def setCapStyle(self, text):
+        capStyles = {
+            "Flat": Qt.PenCapStyle.FlatCap,
+            "Square": Qt.PenCapStyle.SquareCap,
+            "Round": Qt.PenCapStyle.RoundCap
+        }
+        self.canvas.setCapStyle(capStyles.get(text, Qt.PenCapStyle.FlatCap))
+        # until here
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
