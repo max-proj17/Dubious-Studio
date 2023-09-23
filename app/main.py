@@ -1,7 +1,8 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, QButtonGroup, QDockWidget, QColorDialog, QListWidget, QListWidgetItem, QGraphicsRectItem, QSlider, QLabel
-from PyQt6.QtGui import QPainter, QPen, QColor, QTransform, QBrush
+from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, QButtonGroup, QDockWidget, QColorDialog, QListWidget, QListWidgetItem, QGraphicsRectItem, QComboBox, QLabel, QSlider
+from PyQt6.QtGui import QPainter, QPen, QColor, QTransform, QBrush,  QPainterPath, QPainterPathStroker
 from PyQt6.QtCore import Qt, QPoint, QSize, QRectF
+import math
 
 
 
@@ -18,12 +19,31 @@ class ColorPalette(QWidget):
 
         self.addColorButton.clicked.connect(self.addColor)
 
+
         #eraser slider
         self.eraserSlider = QSlider(Qt.Orientation.Horizontal, self)
         self.eraserSlider.setMinimum(1)
         self.eraserSlider.setMaximum(20)
         self.layout.addWidget(QLabel("Eraser Size:"))
         self.layout.addWidget(self.eraserSlider)
+
+        self.capStyleComboBox = QComboBox(self)
+        self.capStyleComboBox.addItems(["Flat", "Square", "Round", "Tapered"])
+        self.layout.addWidget(QLabel("Cap Style:"))
+        self.layout.addWidget(self.capStyleComboBox)
+
+        self.sizeSlider = QSlider(Qt.Orientation.Horizontal, self)
+        self.sizeSlider.setMinimum(1)
+        self.sizeSlider.setMaximum(20)
+        self.layout.addWidget(QLabel("Size:"))
+        self.layout.addWidget(self.sizeSlider)
+
+        self.opacitySlider = QSlider(Qt.Orientation.Horizontal, self)
+        self.opacitySlider.setMinimum(1)
+        self.opacitySlider.setMaximum(100)
+        self.layout.addWidget(QLabel("Opacity:"))
+        self.layout.addWidget(self.opacitySlider)
+
 
     def addColor(self):
         color = QColorDialog.getColor()
@@ -48,7 +68,13 @@ class DrawingCanvas(QGraphicsView):
         self.isDrawing = False
         self.currentColor = QColor(Qt.GlobalColor.black)
         self.currentTool = "draw"
+
         self.currentEraserSize = 10
+
+        self.currentSize = 1
+        self.currentOpacity = 1.0
+        self.currentCapStyle = Qt.PenCapStyle.FlatCap
+
 
         self.scaleFactor = 1.0
         self.rotationAngle = 0.0
@@ -73,9 +99,18 @@ class DrawingCanvas(QGraphicsView):
     def setColor(self, color):
         self.currentColor = QColor(color)
 
+
     def setEraserSize(self, eraser):
         self.currentEraserSize = eraser
 
+    def setSize(self, size):
+        self.currentSize = size
+
+    def setOpacity(self, opacity):
+        self.currentOpacity = opacity / 100.0
+
+    def setCapStyle(self, capStyle):
+        self.currentCapStyle = capStyle
 
     def wheelEvent(self, event):
         if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
@@ -94,6 +129,7 @@ class DrawingCanvas(QGraphicsView):
 
             self.applyTransform()
 
+
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             self.startPoint = self.mapToScene(event.position().toPoint())
@@ -108,12 +144,42 @@ class DrawingCanvas(QGraphicsView):
     def mouseMoveEvent(self, event):
         if self.isDrawing:
             self.endPoint = self.mapToScene(event.position().toPoint())
+
             pen = QPen(self.currentColor)
 
             if self.currentTool == "erase":
                 pen.setColor(Qt.GlobalColor.white)
                 pen.setWidth(self.currentEraserSize)  # Use the current eraser size
             self.scene().addLine(self.startPoint.x(), self.startPoint.y(), self.endPoint.x(), self.endPoint.y(), pen)
+
+            color = QColor(self.currentColor)
+            color.setAlphaF(self.currentOpacity)
+
+            if self.currentCapStyle == "Tapered":
+                path = QPainterPath(self.startPoint)
+                path.lineTo(self.endPoint)
+                distance = math.sqrt((self.startPoint.x() - self.endPoint.x())**2 + (self.startPoint.y() - self.endPoint.y())**2)
+                segments = max(int(distance), 1)
+                gradientPath = QPainterPath()
+                for i in range(segments):
+                    t = i / segments
+                    p = path.pointAtPercent(t)
+                    # Modified width calculation for sharper tapering
+                    width = self.currentSize * (1 - (2*t - 1)**2)  
+                    segmentStroker = QPainterPathStroker()
+                    segmentStroker.setWidth(width)
+                    segmentPath = QPainterPath(p)
+                    segmentPath.lineTo(path.pointAtPercent((i + 1) / segments))
+                    gradientPath.addPath(segmentStroker.createStroke(segmentPath))
+                self.scene().addPath(gradientPath, QPen(color), QBrush(color))
+            else:
+                pen = QPen(color, self.currentSize)
+                pen.setCapStyle(self.currentCapStyle)
+                if self.currentTool == "erase":
+                    pen.setColor(Qt.GlobalColor.white)
+                    pen.setWidth(10)
+                self.scene().addLine(self.startPoint.x(), self.startPoint.y(), self.endPoint.x(), self.endPoint.y(), pen)
+
             self.startPoint = self.endPoint
         elif event.buttons() & Qt.MouseButton.RightButton:
             delta = event.globalPosition().toPoint() - self.lastMousePosition
@@ -124,6 +190,8 @@ class DrawingCanvas(QGraphicsView):
                 self.verticalScrollBar().setValue(self.verticalScrollBar().value() - delta.y())
             self.lastMousePosition = event.globalPosition().toPoint()
             self.applyTransform()
+
+
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
@@ -143,6 +211,7 @@ class DrawingCanvas(QGraphicsView):
         transform.scale(self.scaleFactor, self.scaleFactor)
         transform.translate(-self.canvasItem.rect().width() / 2, -self.canvasItem.rect().height() / 2)
         self.canvasItem.setTransform(transform)
+
 
 
 class DrawingApp(QMainWindow):
@@ -170,6 +239,9 @@ class DrawingApp(QMainWindow):
             self.layout.addWidget(btn)
             btn.clicked.connect(lambda checked, tool=tool: self.canvas.setTool(tool))
 
+        self.colorPalette.sizeSlider.valueChanged.connect(self.canvas.setSize)
+        self.colorPalette.opacitySlider.valueChanged.connect(self.canvas.setOpacity)
+
         self.toolButtons.buttons()[0].setChecked(True)
 
         self.colorPalette.colorList.itemClicked.connect(
@@ -187,6 +259,17 @@ class DrawingApp(QMainWindow):
         self.setWindowTitle('Drawing Canvas')
         self.show()
 
+
+        self.colorPalette.capStyleComboBox.currentTextChanged.connect(self.setCapStyle)
+
+    def setCapStyle(self, text):
+        capStyles = {
+            "Flat": Qt.PenCapStyle.FlatCap,
+            "Square": Qt.PenCapStyle.SquareCap,
+            "Round": Qt.PenCapStyle.RoundCap,
+            "Tapered": "Tapered"
+        }
+        self.canvas.setCapStyle(capStyles.get(text, Qt.PenCapStyle.FlatCap))
 
 
 if __name__ == '__main__':
