@@ -1,7 +1,35 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, QButtonGroup, QDockWidget
+from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, QButtonGroup, QDockWidget, QColorDialog, QListWidget, QListWidgetItem
 from PyQt6.QtGui import QPainter, QPen, QColor
-from PyQt6.QtCore import Qt, QPoint
+from PyQt6.QtCore import Qt, QPoint, QSize
+
+
+class ColorPalette(QWidget):
+    def __init__(self, parent=None):
+        super(ColorPalette, self).__init__(parent)
+        self.layout = QVBoxLayout(self)
+
+        self.colorList = QListWidget(self)
+        self.layout.addWidget(self.colorList)
+
+        self.addColorButton = QPushButton("Add Color", self)
+        self.layout.addWidget(self.addColorButton)
+
+        self.addColorButton.clicked.connect(self.addColor)
+
+    def addColor(self):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            item = QListWidgetItem()
+            item.setBackground(QColor(color))
+            item.setSizeHint(QSize(50, 50))
+            self.colorList.addItem(item)
+
+    def getSelectedColor(self):
+        item = self.colorList.currentItem()
+        if item:
+            return item.background().color()
+        return None
 
 class DrawingCanvas(QGraphicsView):
     def __init__(self, scene, parent=None):
@@ -55,15 +83,8 @@ class DrawingApp(QMainWindow):
         self.sidebar = QWidget()
         self.layout = QVBoxLayout(self.sidebar)
 
-        self.colors = ["black", "red", "green", "blue", "yellow"]
-        self.colorButtons = QButtonGroup(self.sidebar)
-        for color in self.colors:
-            btn = QPushButton(color.capitalize())
-            btn.setStyleSheet(f"background-color: {color}")
-            btn.setCheckable(True)
-            self.colorButtons.addButton(btn)
-            self.layout.addWidget(btn)
-            btn.clicked.connect(lambda checked, color=color: self.canvas.setColor(color))
+        self.colorPalette = ColorPalette(self.sidebar)
+        self.layout.addWidget(self.colorPalette)
 
         self.tools = ["draw", "erase"]
         self.toolButtons = QButtonGroup(self.sidebar)
@@ -74,8 +95,9 @@ class DrawingApp(QMainWindow):
             self.layout.addWidget(btn)
             btn.clicked.connect(lambda checked, tool=tool: self.canvas.setTool(tool))
 
-        self.colorButtons.buttons()[0].setChecked(True)
         self.toolButtons.buttons()[0].setChecked(True)
+
+        self.colorPalette.colorList.itemClicked.connect(lambda: self.canvas.setColor(self.colorPalette.getSelectedColor()))
 
         self.dock = QDockWidget("Tools", self)
         self.dock.setWidget(self.sidebar)
