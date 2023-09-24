@@ -1,5 +1,6 @@
 import sys
 import os
+import time
 import shutil
 import requests
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QFileDialog, QLineEdit
@@ -92,20 +93,24 @@ class AIWidget(QWidget):
 
                 
             # Handle the API response
-            if response.status_code == 200:
-                # Save and display the new image
-                print("API call successful...")
-                new_image_path = os.path.join(desktop_path, 'new_image.jpg')
-                with open(new_image_path, 'wb') as new_image_file:
-                    new_image_file.write(response.content)
-                pixmap = QPixmap(new_image_path)
-                scaled_pixmap = pixmap.scaled(pixmap.width() // 4, pixmap.height() // 4, Qt.AspectRatioMode.KeepAspectRatio)
-                self.image_label.setPixmap(scaled_pixmap)
-                self.current_image_path = new_image_path
-            else:
-                # Handle API errors
-                print(f"Error: Unable to process image. API Response: {response.status_code}, {response.text}")
-
+        if response.status_code == 200:
+            # Save and display the new image
+            print("API call successful...")
+            
+            # Generate a unique filename using a timestamp
+            timestamp = int(time.time())
+            new_image_name = f'new_image_{timestamp}.jpg'
+            new_image_path = os.path.join(desktop_path, new_image_name)
+            
+            with open(new_image_path, 'wb') as new_image_file:
+                new_image_file.write(response.content)
+            pixmap = QPixmap(new_image_path)
+            scaled_pixmap = pixmap.scaled(pixmap.width() // 4, pixmap.height() // 4, Qt.AspectRatioMode.KeepAspectRatio)
+            self.image_label.setPixmap(scaled_pixmap)
+            self.current_image_path = new_image_path
+        else:
+            # Handle API errors
+            print(f"Error: Unable to process image. API Response: {response.status_code}, {response.text}")
 
 
 
