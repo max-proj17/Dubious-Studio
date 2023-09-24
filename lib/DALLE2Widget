@@ -1,0 +1,93 @@
+import os
+import openai
+import time
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel, QLineEdit, QFileDialog
+from PyQt6.QtGui import QPixmap
+from PyQt6.QtCore import Qt, QDir, QThread, pyqtSignal
+
+class DALLE2ProcessingThread(QThread):
+    finished_signal = pyqtSignal(dict)  # Signal to emit the result of the processing
+    
+    def __init__(self, image_path, mask_path, prompt, api_key):
+        super().__init__()
+        self.image_path = image_path
+        self.mask_path = mask_path
+        self.prompt = prompt
+        self.api_key = api_key
+        openai.api_key = api_key
+        
+    def run(self):
+        result = {}
+        desktop_path = os.path.join(os.path.expanduser('~'), 'Desktop')
+        
+        try:
+            with open(self.image_path, "rb") as image_file, open(self.mask_path, "rb") as mask_file:
+                response = openai.Image.create_edit(
+                    image=image_file,
+                    mask=mask_file,
+                    prompt=self.prompt,
+                    n=1,
+                    size="1024x1024"
+                )
+                
+                image_url = response['data'][0]['url']
+                result['image_url'] = image_url
+                
+        except Exception as e:
+            result['error'] = str(e)
+        
+        self.finished_signal.emit(result)
+
+class DALLE2Widget(QWidget):
+    def __init__(self, api_key):
+        super().__init__()
+        self.api_key = api_key
+        self.init_ui()
+        
+    def init_ui(self):
+        layout = QVBoxLayout()
+
+        self.upload_image_btn = QPushButton('Upload Image')
+        self.upload_image_btn.clicked.connect(self.upload_image)
+        layout.addWidget(self.upload_image_btn)
+
+        self.upload_mask_btn = QPushButton('Upload Mask')
+        self.upload_mask_btn.clicked.connect(self.upload_mask)
+        layout.addWidget(self.upload_mask_btn)
+
+        self.prompt_input = QLineEdit()
+        self.prompt_input.setPlaceholderText("Enter prompt describing the desired outcome")
+        layout.addWidget(self.prompt_input)
+
+        self.process_btn = QPushButton('Process Image')
+        self.process_btn.clicked.connect(self.process_image)
+        layout.addWidget(self.process_btn)
+
+        self.image_label = QLabel()
+        self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.image_label)
+
+        self.setLayout(layout)
+        
+    def upload_image(self):
+        file_name, _ = QFileDialog.getOpenFileName(self, 'Open Image File', QDir.homePath(), 'Images (*.png)')
+        if file_name:
+            self.image_path = file_name
+            
+    def upload_mask(self):
+        file_name, _ = QFileDialog.getOpenFileName(self, 'Open Mask File', QDir.homePath(), 'Images (*.png)')
+        if file_name:
+            self.mask_path = file_name
+
+    def process_image(self):
+        print("Processing image...")
+        prompt = self.prompt_input.text().strip()
+        if hasattr(self, 'image_path') and hasattr(self, 'mask_path') and self.api_key:
+            self.processing_thread = DALLE2ProcessingThread(self.image_path, self.mask_path, prompt, self.api_key)
+            self.processing_thread.finished_signal.connect(self.on_image_processed)
+            self.processing_thread.start()
+            
+    def on_image_processed(self, result):
+        if 'image_url' in result:
+            pixmap = QPixmap(result['image_url'])
+            scaled_pixmap = pixmap.scaled(pixmap.width)

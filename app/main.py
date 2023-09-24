@@ -1,7 +1,7 @@
 
 import sys, os
-from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, QButtonGroup, QDockWidget, QColorDialog, QListWidget, QListWidgetItem, QGraphicsRectItem, QComboBox, QLabel, QSlider, QHBoxLayout, QStyledItemDelegate, QStyle, QSpinBox
-from PyQt6.QtGui import QPainter, QPen, QColor, QTransform, QBrush,  QPainterPath, QPainterPathStroker, QRadialGradient,  QPalette, QIcon, QImage
+from PyQt6.QtWidgets import QDialog, QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, QButtonGroup, QDockWidget, QColorDialog, QListWidget, QListWidgetItem, QGraphicsRectItem, QComboBox, QLabel, QSlider, QHBoxLayout, QStyledItemDelegate, QStyle, QSpinBox
+from PyQt6.QtGui import QPainter, QPen, QColor, QTransform, QBrush,  QPainterPath, QPainterPathStroker, QRadialGradient,  QPalette, QIcon, QImage, QPixmap
 from PyQt6.QtCore import Qt, QPoint, QSize, QRectF, pyqtSignal, QPointF
 import math
 
@@ -12,6 +12,75 @@ from lib import ColorPalette
 from lib import Toolbox
 from lib import DrawingCanvas
 from lib import AIWidget
+
+
+
+class MaskDialog(QDialog):
+    def __init__(self, parent=None):
+        super(MaskDialog, self).__init__(parent)
+        self.canvas = QImage(1024, 1024, QImage.Format.Format_ARGB32)
+        self.layout = QVBoxLayout(self)
+        
+        self.view = QGraphicsView(self)
+        self.layout.addWidget(self.view)
+        
+        self.scene = QGraphicsScene(self)
+        self.view.setScene(self.scene)
+        
+        # Check if parent.scene is not None
+        if parent and parent.scene:
+            # Initialize the canvas with the current drawing from the main window
+            self.canvas = QImage(1024, 1024, QImage.Format.Format_ARGB32)
+            painter = QPainter(self.canvas)
+            parent.scene.render(painter)
+            painter.end()
+        else:
+            # Initialize with a blank canvas if parent.scene is None
+            self.canvas = QImage(1024, 1022, QImage.Format.Format_ARGB32)
+            self.canvas.fill(Qt.GlobalColor.transparent)
+        
+        self.isDrawing = False
+        self.startPoint = QPoint()
+        self.endPoint = QPoint()
+        
+        self.doneButton = QPushButton("Done", self)
+        self.layout.addWidget(self.doneButton)
+        self.doneButton.clicked.connect(self.saveMaskAndClose)
+        
+        # Display the initial canvas
+        self.scene.addPixmap(QPixmap.fromImage(self.canvas))
+        
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.startPoint = self.view.mapToScene(event.pos())
+            self.endPoint = self.startPoint
+            self.isDrawing = True
+            
+    def mouseMoveEvent(self, event):
+        if self.isDrawing:
+            self.endPoint = self.view.mapToScene(event.pos())
+            
+            painter = QPainter(self.canvas)
+            # Use a fully transparent color for the transparent brush
+            painter.setPen(QPen(QColor(255, 255, 255, 0), 10, Qt.PenCapStyle.RoundCap))
+            
+            painter.drawLine(self.startPoint, self.endPoint)
+            painter.end()
+            
+            self.startPoint = self.endPoint
+            self.scene.clear()
+            self.scene.addPixmap(QPixmap.fromImage(self.canvas))
+            
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.isDrawing = False
+            
+    def saveMaskAndClose(self):
+        # Ensure the path is correct and writable
+        save_path = "C:/Users/maxfi/Desktop/mask.png"
+        self.canvas.save(save_path)
+        self.accept()
+
 
 
 class DrawingApp(QMainWindow):
@@ -82,6 +151,10 @@ class DrawingApp(QMainWindow):
         self.show()
 
         self.toolbox.capStyleComboBox.currentTextChanged.connect(self.setCapStyle)
+        
+        self.createMaskButton = QPushButton("Create Mask", self)
+        self.createMaskButton.clicked.connect(self.openMaskDialog)
+        self.rightSidebar.layout().addWidget(self.createMaskButton)
 
     def setCapStyle(self, text):
         capStyles = {
@@ -107,6 +180,10 @@ class DrawingApp(QMainWindow):
 
         # Save the QImage to the specified filename
         image.save(filename)
+    def openMaskDialog(self):
+        maskDialog = MaskDialog(self)
+        maskDialog.exec()   
+        
         
 if __name__ == '__main__':
     app = QApplication(sys.argv)
