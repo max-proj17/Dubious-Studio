@@ -11,7 +11,7 @@ sys.path.append(root_folder)
 
 from lib import SketchToImageWidget
 from lib import TextToImageWidget
-   
+from lib import tfWidget
 
 class ImageUpscalingWidget(QWidget):
     def __init__(self):
@@ -39,7 +39,7 @@ class AIWidget(QWidget):
 
         # Create a combo box for tool selection
         self.toolComboBox = QComboBox()
-        self.toolComboBox.addItems(["Sketch to Image", "Text to Image", "Image Upscaling"])
+        self.toolComboBox.addItems(["Sketch to Image", "Text to Image", "Image Upscaling", "TensorFlow Style Transfer"])
         layout.addWidget(self.toolComboBox)
 
         # Create a stacked widget to hold tool widgets
@@ -50,15 +50,10 @@ class AIWidget(QWidget):
         self.stackedWidget.addWidget(SketchToImageWidget.SketchToImageWidget(self.stablexl_key))  # Pass the API key to the widget
         self.stackedWidget.addWidget(TextToImageWidget.TextToImageWidget(self.stablexl_key))
         self.stackedWidget.addWidget(ImageUpscalingWidget())
+        self.stackedWidget.addWidget(tfWidget.tfWidget())
 
         # Connect the combo box signal to switch tool widgets
         self.toolComboBox.currentIndexChanged.connect(self.stackedWidget.setCurrentIndex)
 
         # Set layout
         self.setLayout(layout)
-
-
-
-
-
-

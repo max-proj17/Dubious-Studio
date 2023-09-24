@@ -1,7 +1,7 @@
 
-import sys, os
-from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, QButtonGroup, QDockWidget, QColorDialog, QListWidget, QListWidgetItem, QGraphicsRectItem, QComboBox, QLabel, QSlider, QHBoxLayout, QStyledItemDelegate, QStyle, QSpinBox
-from PyQt6.QtGui import QPainter, QPen, QColor, QTransform, QBrush,  QPainterPath, QPainterPathStroker, QRadialGradient,  QPalette, QIcon, QImage
+import sys, os, time
+from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, QButtonGroup, QDockWidget, QColorDialog, QListWidget, QListWidgetItem, QGraphicsRectItem, QComboBox, QLabel, QSlider, QHBoxLayout, QStyledItemDelegate, QStyle, QSpinBox, QSplashScreen
+from PyQt6.QtGui import QPainter, QPen, QColor, QTransform, QBrush,  QPainterPath, QPainterPathStroker, QRadialGradient,  QPalette, QIcon, QImage, QPixmap
 from PyQt6.QtCore import Qt, QPoint, QSize, QRectF, pyqtSignal, QPointF
 import math
 
@@ -12,7 +12,7 @@ from lib import ColorPalette
 from lib import Toolbox
 from lib import DrawingCanvas
 from lib import AIWidget
-
+from lib import tfWidget
 
 class DrawingApp(QMainWindow):
     def __init__(self):
@@ -77,7 +77,7 @@ class DrawingApp(QMainWindow):
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.leftDock)
 
         self.setGeometry(100, 100, 1144, 1144)  # Adjust window size to accommodate the larger canvas
-        self.setWindowIcon(QIcon("resources/icon.png"))
+        self.setWindowIcon(QIcon("resources/logo-small.png"))
         self.setWindowTitle('Dubious Studio')
         self.show()
 
@@ -110,5 +110,11 @@ class DrawingApp(QMainWindow):
         
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    pixmap = QPixmap("resources/logo-medium.png")
+    splash = QSplashScreen(pixmap)
+    splash.show()
+    time.sleep(1)
     window = DrawingApp()
+    window.show()
+    splash.finish(window)
     sys.exit(app.exec())

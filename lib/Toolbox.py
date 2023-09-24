@@ -1,18 +1,27 @@
 import sys, os
 from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, QButtonGroup, QDockWidget, QColorDialog, QListWidget, QListWidgetItem, QGraphicsRectItem, QComboBox, QLabel, QSlider, QHBoxLayout, QStyledItemDelegate, QStyle, QSpinBox, QFileDialog
 from PyQt6.QtGui import QPainter, QPen, QColor, QTransform, QBrush,  QPainterPath, QPainterPathStroker, QRadialGradient,  QPalette, QIcon, QImage
-from PyQt6.QtCore import Qt, QPoint, QSize, QRectF, pyqtSignal, QPointF
+from PyQt6.QtCore import Qt, QPoint, QSize, QRectF, pyqtSignal, QPointF, QFile
 import math
+
 root_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(root_folder)
 
 from lib import AIWidget
+
+dark_mode = QFile("lib/dark-mode.qss")
 
 class Toolbox(QWidget):
     def __init__(self, drawingApp, layout=None, parent=None):
         super(Toolbox, self).__init__(parent)
         self.drawingApp = drawingApp
         layout = QVBoxLayout(self)
+        
+        self.dark_mode_toggle = QPushButton("Toggle Dark Mode", self)
+        self.dark_mode_toggle.clicked.connect(self.toggle_dark_mode)
+        self.dark_mode_active = False
+        self.dark_mode_toggle.setCheckable(True)
+        layout.addWidget(self.dark_mode_toggle)
         
         # Eraser slider
         self.eraserSlider = QSlider(Qt.Orientation.Horizontal, self)
@@ -62,3 +71,13 @@ class Toolbox(QWidget):
             if not filename.endswith('.png'):
                 filename += '.png'
             self.drawingApp.saveCanvas(filename)
+
+    def toggle_dark_mode(self):
+        print("Toggling dark mode...")  # Debug print
+        if self.dark_mode_toggle.isChecked():
+            with open("lib/dark-mode.qss", "r") as file:
+                dark_mode = file.read()
+                print(dark_mode)  # Debug print
+                QApplication.instance().setStyleSheet(dark_mode)
+        else:
+            QApplication.instance().setStyleSheet("")
