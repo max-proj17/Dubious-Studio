@@ -450,7 +450,6 @@ class DrawingCanvas(QGraphicsView):
         self.currentOpacity = 1.0
         self.currentCapStyle = Qt.PenCapStyle.FlatCap
 
-
         self.scaleFactor = 1.0
         self.rotationAngle = 0.0
         self.lastMousePosition = QPoint()
@@ -473,7 +472,6 @@ class DrawingCanvas(QGraphicsView):
 
     def setColor(self, color):
         self.currentColor = QColor(color)
-
 
     def setEraserSize(self, eraser):
         self.currentEraserSize = eraser
@@ -525,12 +523,6 @@ class DrawingCanvas(QGraphicsView):
             
             pen = QPen(self.currentColor)
 
-            
-            if self.currentTool == "erase":
-                pen.setColor(Qt.GlobalColor.white)
-                pen.setWidth(self.currentEraserSize)  # Use the current eraser size
-            self.scene().addLine(self.startPoint.x(), self.startPoint.y(), self.endPoint.x(), self.endPoint.y(), pen)
-
             color = QColor(self.currentColor)
             color.setAlphaF(self.currentOpacity)
             
@@ -569,8 +561,6 @@ class DrawingCanvas(QGraphicsView):
                 self.verticalScrollBar().setValue(self.verticalScrollBar().value() - delta.y())
             self.lastMousePosition = event.globalPosition().toPoint()
             self.applyTransform()
-
-
 
     def mouseReleaseEvent(self, event):
         print("Mouse Released")
@@ -626,7 +616,7 @@ class DrawingApp(QMainWindow):
             btn.setCheckable(True)
             self.toolButtons.addButton(btn)
             self.layout.addWidget(btn)
-            btn.clicked.connect(lambda checked, tool=tool: self.selectToolOrColor(tool))
+            btn.clicked.connect(lambda checked, tool=tool: self.canvas.setTool(tool))
 
         self.colorPalette.sizeSlider.valueChanged.connect(self.canvas.setSize)
         self.colorPalette.opacitySlider.valueChanged.connect(self.canvas.setOpacity)
@@ -639,17 +629,14 @@ class DrawingApp(QMainWindow):
         # Connect slider value changed signal to setEraserSize method
         self.colorPalette.eraserSlider.valueChanged.connect(self.canvas.setEraserSize)
 
-
         self.dock = QDockWidget("Tools", self)
         self.dock.setWidget(self.sidebar)
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
-
 
         self.setGeometry(100, 100, 1144, 1144)  # Adjust window size to accommodate the larger canvas
         self.setWindowIcon(QIcon("resources/icon.png"))
         self.setWindowTitle('Dubious Studio')
         self.show()
-
 
         self.colorPalette.capStyleComboBox.currentTextChanged.connect(self.setCapStyle)
 
