@@ -1,13 +1,14 @@
-
 import sys, os
 from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, QButtonGroup, QDockWidget, QColorDialog, QListWidget, QListWidgetItem, QGraphicsRectItem, QComboBox, QLabel, QSlider, QHBoxLayout, QStyledItemDelegate, QStyle, QSpinBox
 from PyQt6.QtGui import QPainter, QPen, QColor, QTransform, QBrush,  QPainterPath, QPainterPathStroker, QRadialGradient,  QPalette, QIcon, QImage
 from PyQt6.QtCore import Qt, QPoint, QSize, QRectF, pyqtSignal, QPointF
 import math
+#For when/if we use the lib folder
+root_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(root_folder)
+from lib.Layer import Layer
+from lib.LayerPanel import LayerPanel
 
-# For when/if we use the lib folder
-# root_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-# sys.path.append(root_folder)
 
 # Needed for color palette
 class NonDraggableListWidget(QListWidget):
@@ -421,6 +422,7 @@ class DrawingCanvas(QGraphicsView):
         self.isDrawing = False
         self.currentColor = QColor(Qt.GlobalColor.black)
         self.currentTool = "draw"
+        self.currentLayer = None
 
         self.currentEraserSize = 10
 
@@ -453,6 +455,9 @@ class DrawingCanvas(QGraphicsView):
 
     def setEraserSize(self, eraser):
         self.currentEraserSize = eraser
+
+    def setCurrentLayer(self, layer):
+        self.currentLayer = layer
 
     def setSize(self, size):
         self.currentSize = size
@@ -496,7 +501,9 @@ class DrawingCanvas(QGraphicsView):
     def mouseMoveEvent(self, event):
         
         if self.isDrawing:
-      
+
+            if self.currentLayer:
+                self.currentLayer.addItem(lineItem)
             self.endPoint = self.mapToScene(event.position().toPoint())
             
             pen = QPen(self.currentColor)
@@ -568,9 +575,25 @@ class DrawingApp(QMainWindow):
 
         self.scene = QGraphicsScene(self)
         self.scene.setSceneRect(-512, -512, 2048, 2048)  # Extend scene size to show dark grey background
-
         self.canvas = DrawingCanvas(self.scene, self)
         self.setCentralWidget(self.canvas)
+
+        # Create a QWidget for the layerPanel and set it as a layout
+        self.layerPanelWidget = QWidget()
+        self.layerLayout = QVBoxLayout(self.layerPanelWidget)
+        self.layerPanel = LayerPanel(self)
+        self.layerLayout.addWidget(self.layerPanel)
+        self.layerPanel.layerSelected.connect(self.canvas.setCurrentLayer)
+
+        # Create a QDockWidget for the layerPanelWidget
+        self.layerDock = QDockWidget("Layers", self)
+        self.layerDock.setWidget(self.layerPanelWidget)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.layerDock)
+
+        self.sidebar = QWidget()
+        self.layout = QVBoxLayout(self.sidebar)
+
+
 
         self.sidebar = QWidget()
         self.layout = QVBoxLayout(self.sidebar)
