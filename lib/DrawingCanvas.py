@@ -4,6 +4,8 @@ from PyQt6.QtGui import QPainter, QPen, QColor, QTransform, QBrush,  QPainterPat
 from PyQt6.QtCore import Qt, QPoint, QSize, QRectF, pyqtSignal, QPointF
 import math
 
+# Use QPixmap as  a canvas to draw on
+# Make sure the canvas transformations are not affected "rotate, pan, etc)"
 class DrawingCanvas(QGraphicsView):
     def __init__(self, scene, parent=None):
         super(DrawingCanvas, self).__init__(scene, parent)
