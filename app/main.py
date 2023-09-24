@@ -1,16 +1,18 @@
-
 import sys, os
 from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, QButtonGroup, QDockWidget, QColorDialog, QListWidget, QListWidgetItem, QGraphicsRectItem, QComboBox, QLabel, QSlider, QHBoxLayout, QStyledItemDelegate, QStyle, QSpinBox
 from PyQt6.QtGui import QPainter, QPen, QColor, QTransform, QBrush,  QPainterPath, QPainterPathStroker, QRadialGradient,  QPalette, QIcon, QImage
 from PyQt6.QtCore import Qt, QPoint, QSize, QRectF, pyqtSignal, QPointF
 import math
-
+#For when/if we use the lib folder
 root_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(root_folder)
 
 from lib import ColorPalette
 from lib import Toolbox
 from lib import DrawingCanvas
+
+from lib.Layer import Layer
+from lib.LayerPanel import LayerPanel
 
 class DrawingApp(QMainWindow):
     def __init__(self):
@@ -28,6 +30,7 @@ class DrawingApp(QMainWindow):
             # HSV and RGB sliders
         self.colorSliders = ColorPalette.ColorSliders(self.leftSidebar)
         leftLayout.addWidget(self.colorSliders)
+
         self.colorSliders.hsvSliders.colorSelected.connect(lambda color: self.canvas.setColor(color))
         self.colorSliders.rgbSliders.colorSelected.connect(lambda color: self.canvas.setColor(color))
             # Presets can be an array of any length of hex codes "#xxxxxx"
