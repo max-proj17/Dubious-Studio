@@ -3,6 +3,10 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsS
 from PyQt6.QtGui import QPainter, QPen, QColor, QTransform, QBrush,  QPainterPath, QPainterPathStroker, QRadialGradient,  QPalette, QIcon, QImage
 from PyQt6.QtCore import Qt, QPoint, QSize, QRectF, pyqtSignal, QPointF
 import math
+root_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(root_folder)
+
+from lib import AIWidget
 
 class Toolbox(QWidget):
     def __init__(self, drawingApp, layout=None, parent=None):
@@ -40,6 +44,10 @@ class Toolbox(QWidget):
         layout.addWidget(QLabel("Cap Style:"))
         layout.addWidget(self.capStyleComboBox)
         self.capStyleComboBox.setCurrentIndex(2)
+        
+        # AI Widget
+        self.ai_widget = AIWidget(self)
+        layout.addWidget(self.ai_widget)
         
         # At the end
 
