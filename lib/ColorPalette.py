@@ -222,7 +222,7 @@ class ColorPalette(QWidget):
         self.colorSliders = colorSliders
 
         # Define the sliders here
-        
+        #Array of colors
         self.colorList = NonDraggableListWidget(self)
         self.colorList.setDragDropMode(QListWidget.DragDropMode.NoDragDrop)
         self.colorList.setDragEnabled(False)

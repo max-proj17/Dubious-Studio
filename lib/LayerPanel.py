@@ -9,7 +9,7 @@ from lib.Layer import Layer
 
 
 class LayerPanel(QWidget):
-    layerSelected = pyqtSignal(Layer)
+    layerSelected = pyqtSignal(Layer)  # Signal to emit Layer object
 
     def __init__(self, parent=None):
         super(LayerPanel, self).__init__(parent)
@@ -27,14 +27,17 @@ class LayerPanel(QWidget):
         self.removeButton.clicked.connect(self.removeLayer)
 
         self.layers = []
+        # Connect the layerSelected signal to a slot within this class
+        self.layerSelected.connect(self.handleSelectedLayer)
 
     def addLayer(self):
+        print("Pressed Add Layer")
         layerName, ok = QInputDialog.getText(self, "New Layer", "Layer Name:")
         if ok and layerName:
             layer = Layer(layerName)
             self.layers.append(layer)
             self.layerList.addItem(layerName)
-            self.layerSelected.emit(layer)
+            self.layerSelected.emit(layer)  # Emitting the signal with the Layer object
 
     def removeLayer(self):
         currentItem = self.layerList.currentItem()
@@ -45,4 +48,7 @@ class LayerPanel(QWidget):
 
     def selectLayer(self, index):
         if 0 <= index < len(self.layers):
-            self.layerSelected.emit(self.layers[index])
+            self.layerSelected.emit(self.layers[index])  # Emitting the signal with the selected Layer object
+
+    def handleSelectedLayer(self, selectedLayer):
+        print("Selected Layer:", selectedLayer.name)

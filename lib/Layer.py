@@ -4,6 +4,9 @@ from PyQt6.QtGui import QPainter, QPen, QColor, QTransform, QBrush,  QPainterPat
 from PyQt6.QtCore import Qt, QPoint, QSize, QRectF, pyqtSignal, QPointF
 import math
 
+# Add strokes to active layer
+# 1. Make a Layer Panel object in "Drawing Canvas"
+# 2.
 class Layer:
     def __init__(self, name):
         self.name = name
