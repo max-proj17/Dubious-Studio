@@ -1,7 +1,7 @@
 import sys
 import os
 import requests
-from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QFileDialog
+from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QFileDialog, QLineEdit
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt, QDir
 from dotenv import load_dotenv
@@ -30,6 +30,11 @@ class AIWidget(QWidget):
         self.upload_btn.clicked.connect(self.upload_image)
         layout.addWidget(self.upload_btn)
 
+        # Create prompt input field
+        self.prompt_input = QLineEdit()
+        self.prompt_input.setPlaceholderText("Enter prompt describing the content to generate")
+        layout.addWidget(self.prompt_input)
+
         # Create process button
         self.process_btn = QPushButton('Process Image')
         self.process_btn.clicked.connect(self.process_image)
@@ -54,6 +59,7 @@ class AIWidget(QWidget):
 
     def process_image(self):
         print("Processing image...")
+        prompt = self.prompt_input.text().strip()
         # Check if there is an old image and API key is available
         if hasattr(self, 'current_image_path') and self.stablexl_key:
             print("Image and API key are available...")
