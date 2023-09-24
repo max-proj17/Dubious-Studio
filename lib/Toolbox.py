@@ -42,6 +42,7 @@ class Toolbox(QWidget):
         self.capStyleComboBox.setCurrentIndex(2)
         
         # At the end
+
         layout.addStretch(1)
         
         self.saveButton = QPushButton("Save as .png", self)
