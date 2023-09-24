@@ -150,4 +150,4 @@ class DrawingCanvas(QGraphicsView):
         transform.rotate(self.rotationAngle)
         transform.scale(self.scaleFactor, self.scaleFactor)
         transform.translate(-self.canvasItem.rect().width() / 2, -self.canvasItem.rect().height() / 2)
-        self.canvasItem.setTransform(transform)
+        self.setTransform(transform)
