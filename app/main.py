@@ -221,6 +221,25 @@ class ColorPalette(QWidget):
         # Store the colorSliders reference
         self.colorSliders = colorSliders
 
+        # Define the sliders here
+        self.eraserSlider = QSlider(Qt.Orientation.Horizontal, self)
+        self.eraserSlider.setMinimum(1)
+        self.eraserSlider.setMaximum(20)
+        self.layout.addWidget(QLabel("Eraser Size:"))
+        self.layout.addWidget(self.eraserSlider)
+
+        self.sizeSlider = QSlider(Qt.Orientation.Horizontal, self)
+        self.sizeSlider.setMinimum(1)
+        self.sizeSlider.setMaximum(20)
+        self.layout.addWidget(QLabel("Size:"))
+        self.layout.addWidget(self.sizeSlider)
+
+        self.opacitySlider = QSlider(Qt.Orientation.Horizontal, self)
+        self.opacitySlider.setMinimum(1)
+        self.opacitySlider.setMaximum(100)
+        self.layout.addWidget(QLabel("Opacity:"))
+        self.layout.addWidget(self.opacitySlider)
+        
         self.colorList = NonDraggableListWidget(self)
         self.colorList.setDragDropMode(QListWidget.DragDropMode.NoDragDrop)
         self.colorList.setDragEnabled(False)
@@ -233,31 +252,6 @@ class ColorPalette(QWidget):
         self.colorList.setItemDelegate(ColorItemDelegate(self.colorList))  # Set the custom delegate
         self.layout.addWidget(self.colorList)
         
-        if presets:
-            self.addPresetColors(presets)
-
-        # Buttons layout
-        self.buttonsLayout = QHBoxLayout()
-        self.addColorButton = QPushButton("Add Selected Color", self)
-        self.removeColorButton = QPushButton("Remove Color", self)
-        self.buttonsLayout.addWidget(self.addColorButton)
-        self.buttonsLayout.addWidget(self.removeColorButton)
-        self.layout.addLayout(self.buttonsLayout)
-
-        self.addColorButton.clicked.connect(self.addColor)
-        self.removeColorButton.clicked.connect(self.removeColor)
-        self.colorList.itemClicked.connect(self.updateSelectedColorAppearance)
-
-    def updateSelectedColorAppearance(self, item):
-        selected_color = item.background().color()
-        
-        # Update the color preview in the sliders widget
-        self.colorSliders.colorPreview.setStyleSheet(f"background-color: {selected_color.name()}")
-        
-        # Update the sliders to match the selected color
-        self.colorSliders.setColor(selected_color)
-
-
         #eraser slider
         self.eraserSlider = QSlider(Qt.Orientation.Horizontal, self)
         self.eraserSlider.setMinimum(1)
@@ -281,6 +275,38 @@ class ColorPalette(QWidget):
         self.opacitySlider.setMaximum(100)
         self.layout.addWidget(QLabel("Opacity:"))
         self.layout.addWidget(self.opacitySlider)
+        
+        if presets:
+            self.addPresetColors(presets)
+
+        # Buttons layout
+        self.buttonsLayout = QHBoxLayout()
+        self.addColorButton = QPushButton("Add Selected Color", self)
+        self.removeColorButton = QPushButton("Remove Color", self)
+        self.buttonsLayout.addWidget(self.addColorButton)
+        self.buttonsLayout.addWidget(self.removeColorButton)
+        self.layout.addLayout(self.buttonsLayout)
+
+        self.addColorButton.clicked.connect(self.addColor)
+        self.removeColorButton.clicked.connect(self.removeColor)
+        self.colorList.itemClicked.connect(self.updateSelectedColorAppearance)
+        
+        self.capStyleComboBox = QComboBox(self)
+        self.capStyleComboBox.addItems(["Flat", "Square", "Round", "Tapered"])
+        self.layout.addWidget(QLabel("Cap Style:"))
+        self.layout.addWidget(self.capStyleComboBox)
+
+    def updateSelectedColorAppearance(self, item):
+        selected_color = item.background().color()
+        
+        # Update the color preview in the sliders widget
+        self.colorSliders.colorPreview.setStyleSheet(f"background-color: {selected_color.name()}")
+        
+        # Update the sliders to match the selected color
+        self.colorSliders.setColor(selected_color)
+
+
+        
 
 
     def addColor(self):
@@ -480,6 +506,7 @@ class DrawingCanvas(QGraphicsView):
 
 
     def mousePressEvent(self, event):
+        print("Mouse Pressed")
         if event.button() == Qt.MouseButton.LeftButton:
             self.startPoint = self.mapToScene(event.position().toPoint())
             self.endPoint = self.startPoint
@@ -491,11 +518,14 @@ class DrawingCanvas(QGraphicsView):
             event.accept()
 
     def mouseMoveEvent(self, event):
+        
         if self.isDrawing:
+      
             self.endPoint = self.mapToScene(event.position().toPoint())
-
+            
             pen = QPen(self.currentColor)
 
+            
             if self.currentTool == "erase":
                 pen.setColor(Qt.GlobalColor.white)
                 pen.setWidth(self.currentEraserSize)  # Use the current eraser size
@@ -503,7 +533,7 @@ class DrawingCanvas(QGraphicsView):
 
             color = QColor(self.currentColor)
             color.setAlphaF(self.currentOpacity)
-
+            
             if self.currentCapStyle == "Tapered":
                 path = QPainterPath(self.startPoint)
                 path.lineTo(self.endPoint)
@@ -543,6 +573,7 @@ class DrawingCanvas(QGraphicsView):
 
 
     def mouseReleaseEvent(self, event):
+        print("Mouse Released")
         if event.button() == Qt.MouseButton.LeftButton:
             self.isDrawing = False
         elif event.button() == Qt.MouseButton.RightButton:
