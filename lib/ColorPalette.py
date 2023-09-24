@@ -4,8 +4,6 @@ from PyQt6.QtGui import QPainter, QPen, QColor, QTransform, QBrush,  QPainterPat
 from PyQt6.QtCore import Qt, QPoint, QSize, QRectF, pyqtSignal, QPointF
 import math
 
-
-
 class NonDraggableListWidget(QListWidget):
     def __init__(self, parent=None):
         super(NonDraggableListWidget, self).__init__(parent)
@@ -59,6 +57,8 @@ class HSVSliders(QWidget):
         self.hueSpinBox.setValue(0)
         self.saturationSpinBox.setValue(255)
         self.valueSpinBox.setValue(255)
+        
+        self.layout.addStretch(1)
 
     def updateColor(self):
         hue = self.hueSlider.value()
@@ -116,6 +116,8 @@ class RGBSliders(QWidget):
         self.greenSpinBox.valueChanged.connect(self.greenSlider.setValue)
         self.blueSlider.valueChanged.connect(self.blueSpinBox.setValue)
         self.blueSpinBox.valueChanged.connect(self.blueSlider.setValue)
+        
+        self.layout.addStretch(1)
 
     def updateColor(self):
         red = self.redSlider.value()
@@ -160,6 +162,8 @@ class ColorSliders(QWidget):
         
         self.hsvSliders.updateColor()
         self.rgbSliders.updateColor()
+        
+        self.layout.addStretch(1)
         
     def setColor(self, color):
         # Update HSV sliders
@@ -231,25 +235,6 @@ class ColorPalette(QWidget):
         self.colorList.setItemDelegate(ColorItemDelegate(self.colorList))  # Set the custom delegate
         self.layout.addWidget(self.colorList)
         
-        #eraser slider
-        self.eraserSlider = QSlider(Qt.Orientation.Horizontal, self)
-        self.eraserSlider.setMinimum(1)
-        self.eraserSlider.setMaximum(20)
-        self.layout.addWidget(QLabel("Eraser Size:"))
-        self.layout.addWidget(self.eraserSlider)
-
-        self.sizeSlider = QSlider(Qt.Orientation.Horizontal, self)
-        self.sizeSlider.setMinimum(1)
-        self.sizeSlider.setMaximum(20)
-        self.layout.addWidget(QLabel("Size:"))
-        self.layout.addWidget(self.sizeSlider)
-
-        self.opacitySlider = QSlider(Qt.Orientation.Horizontal, self)
-        self.opacitySlider.setMinimum(1)
-        self.opacitySlider.setMaximum(100)
-        self.layout.addWidget(QLabel("Opacity:"))
-        self.layout.addWidget(self.opacitySlider)
-        
         if presets:
             self.addPresetColors(presets)
 
@@ -265,10 +250,7 @@ class ColorPalette(QWidget):
         self.removeColorButton.clicked.connect(self.removeColor)
         self.colorList.itemClicked.connect(self.updateSelectedColorAppearance)
         
-        self.capStyleComboBox = QComboBox(self)
-        self.capStyleComboBox.addItems(["Flat", "Square", "Round", "Tapered"])
-        self.layout.addWidget(QLabel("Cap Style:"))
-        self.layout.addWidget(self.capStyleComboBox)
+        self.layout.addStretch(1)
 
     def updateSelectedColorAppearance(self, item):
         selected_color = item.background().color()

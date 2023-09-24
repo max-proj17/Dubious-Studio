@@ -9,6 +9,7 @@ root_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(root_folder)
 
 from lib import ColorPalette
+from lib import Toolbox
 
 class DrawingCanvas(QGraphicsView):
     def __init__(self, scene, parent=None):
@@ -167,32 +168,32 @@ class DrawingApp(QMainWindow):
         self.canvas = DrawingCanvas(self.scene, self)
         self.setCentralWidget(self.canvas)
 
-        self.sidebar = QWidget()
-        self.layout = QVBoxLayout(self.sidebar)
-
-        # HSV and RGB sliders
-        self.colorSliders = ColorPalette.ColorSliders(self.sidebar)
-        self.layout.addWidget(self.colorSliders)
+        # Left Sidebar
+        self.leftSidebar = QWidget()
+        leftLayout = QVBoxLayout(self.leftSidebar)
+            # HSV and RGB sliders
+        self.colorSliders = ColorPalette.ColorSliders(self.leftSidebar)
+        leftLayout.addWidget(self.colorSliders)
         self.colorSliders.hsvSliders.colorSelected.connect(lambda color: self.canvas.setColor(color))
         self.colorSliders.rgbSliders.colorSelected.connect(lambda color: self.canvas.setColor(color))
-
-        # Presets can be an array of any length of hex codes "#xxxxxx"
+            # Presets can be an array of any length of hex codes "#xxxxxx"
         presets = ["#5A5A5A", "#FFD1DC", "#A2CFFE", "#FFFFB3", "#B2FFB2", "#E6CCFF", "#FFDAB9", "#B5EAD7", "#FFB6B9"]
-        self.colorPalette = ColorPalette.ColorPalette(self.colorSliders, self.sidebar, presets=presets)
-        self.layout.addWidget(self.colorPalette)
+        self.colorPalette = ColorPalette.ColorPalette(self.colorSliders, self.leftSidebar, presets=presets)
+        leftLayout.addWidget(self.colorPalette)
 
-        # Tools
+        # Right Sidebar
+            # Tools are on the right
+        self.rightSidebar = QWidget()
+        rightLayout = QVBoxLayout(self.rightSidebar)
+
         self.tools = ["draw", "erase"]
-        self.toolButtons = QButtonGroup(self.sidebar)
+        self.toolButtons = QButtonGroup(self.rightSidebar)
         for tool in self.tools:
             btn = QPushButton(tool.capitalize())
             btn.setCheckable(True)
             self.toolButtons.addButton(btn)
-            self.layout.addWidget(btn)
+            rightLayout.addWidget(btn)
             btn.clicked.connect(lambda checked, tool=tool: self.canvas.setTool(tool))
-
-        self.colorPalette.sizeSlider.valueChanged.connect(self.canvas.setSize)
-        self.colorPalette.opacitySlider.valueChanged.connect(self.canvas.setOpacity)
 
         self.toolButtons.buttons()[0].setChecked(True)
 
@@ -200,18 +201,28 @@ class DrawingApp(QMainWindow):
             lambda: self.canvas.setColor(self.colorPalette.getSelectedColor()))
 
         # Connect slider value changed signal to setEraserSize method
-        self.colorPalette.eraserSlider.valueChanged.connect(self.canvas.setEraserSize)
+        
+        self.toolbox = Toolbox.Toolbox(layout=rightLayout, parent=self.rightSidebar)
+        rightLayout.addWidget(self.toolbox)
+        
+        self.toolbox.sizeSlider.valueChanged.connect(self.canvas.setSize)
+        self.toolbox.opacitySlider.valueChanged.connect(self.canvas.setOpacity)
+        self.toolbox.eraserSlider.valueChanged.connect(self.canvas.setEraserSize)
 
-        self.dock = QDockWidget("Tools", self)
-        self.dock.setWidget(self.sidebar)
-        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)
+        self.rightDock = QDockWidget("Tools", self)
+        self.rightDock.setWidget(self.rightSidebar)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.rightDock)
+        
+        self.leftDock = QDockWidget("Colors", self)
+        self.leftDock.setWidget(self.leftSidebar)
+        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.leftDock)
 
         self.setGeometry(100, 100, 1144, 1144)  # Adjust window size to accommodate the larger canvas
         self.setWindowIcon(QIcon("resources/icon.png"))
         self.setWindowTitle('Dubious Studio')
         self.show()
 
-        self.colorPalette.capStyleComboBox.currentTextChanged.connect(self.setCapStyle)
+        self.toolbox.capStyleComboBox.currentTextChanged.connect(self.setCapStyle)
 
     def setCapStyle(self, text):
         capStyles = {
