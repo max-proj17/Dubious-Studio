@@ -43,18 +43,3 @@ class Toolbox(QWidget):
         
         # At the end
         layout.addStretch(1)
-        
-        self.saveButton = QPushButton("Save as .png", self)
-        self.saveButton.clicked.connect(self.saveCanvas)
-        layout.addWidget(self.saveButton)
-        
-        self.sketchToImageButton = QPushButton("Sketch to Image", self)
-        self.sketchToImageButton.clicked.connect(self.sketchToImage)
-        layout.addWidget(self.sketchToImageButton)
-        
-    def saveCanvas(self):
-        filename, _ = QFileDialog.getSaveFileName(self, "Save Canvas", "", "PNG Files (*.png);;All Files (*)")
-        if filename:
-            if not filename.endswith('.png'):
-                filename += '.png'
-            self.drawingApp.saveCanvas(filename)
