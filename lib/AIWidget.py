@@ -24,8 +24,8 @@ class ImageUpscalingWidget(QWidget):
 
         
 class AIWidget(QWidget):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, layout=None, parent=None):
+        super(AIWidget, self).__init__(parent)
 
         # Load environment variables from .env file
         load_dotenv()
