@@ -1,5 +1,6 @@
 import sys
 import os
+import requests
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QFileDialog
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt, QDir
@@ -15,9 +16,10 @@ class AIWidget(QWidget):
         load_dotenv()
 
         # Access the API key
-        api_key = os.getenv("STABLEXL_API_KEY")
+        stablexl_key = os.getenv("STABLEXL_API_KEY")
+        openai_key = os.getenv("OPENAI_API_KEY")
         
-        print(api_key)
+        
 
     def init_ui(self):
         # Create layout
@@ -51,16 +53,40 @@ class AIWidget(QWidget):
             self.current_image_path = file_name
 
     def process_image(self):
-        # Check if there is an old image
-        if hasattr(self, 'current_image_path'):
+        # Check if there is an old image and API key is available
+        if hasattr(self, 'current_image_path') and self.clipdrop_api_key:
             # Save old image to desktop
             desktop_path = os.path.join(os.path.expanduser('~'), 'Desktop')
             old_image_name = os.path.basename(self.current_image_path)
             old_image_path = os.path.join(desktop_path, old_image_name)
             os.rename(self.current_image_path, old_image_path)
 
-            # Make API call and process the image (Replace this with actual API call)
-            # ...
+            # Make API call and process the image
+            url = "https://api.clipdrop.co/sketch-to-image"
+            headers = {
+                "Authorization": f"Bearer {self.clipdrop_api_key}",
+                "Content-Type": "application/json",
+            }
+            with open(self.current_image_path, 'rb') as image_file:
+                files = {'image': image_file}
+                response = requests.post(url, headers=headers, files=files)
+            print("Called the API key")
+            # Handle the API response
+            if response.status_code == 200:
+                # Save and display the new image
+                new_image_path = os.path.join(desktop_path, 'new_image.png')
+                with open(new_image_path, 'wb') as new_image_file:
+                    new_image_file.write(response.content)
+                pixmap = QPixmap(new_image_path)
+                self.image_label.setPixmap(pixmap)
+                self.current_image_path = new_image_path
+            else:
+                # Handle API errors
+                print(f"Error: Unable to process image. API Response: {response.status_code}, {response.text}")
 
-            # Display the new image (Replace this with actual new image)
-            # ...
+
+
+
+
+
+
