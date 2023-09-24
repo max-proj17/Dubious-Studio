@@ -54,7 +54,8 @@ class AIWidget(QWidget):
         if file_name:
             # Display the selected image
             pixmap = QPixmap(file_name)
-            self.image_label.setPixmap(pixmap)
+            scaled_pixmap = pixmap.scaled(pixmap.width() // 2, pixmap.height() // 2, Qt.AspectRatioMode.KeepAspectRatio)
+            self.image_label.setPixmap(scaled_pixmap)
             self.current_image_path = file_name
 
     def process_image(self):
@@ -84,19 +85,20 @@ class AIWidget(QWidget):
             
             print("Called the API key")
             
-            # Handle the API response
-            if response.status_code == 200:
-                # Save and display the new image
-                print("API call successful...")
-                new_image_path = os.path.join(desktop_path, 'new_image.jpg')
-                with open(new_image_path, 'wb') as new_image_file:
-                    new_image_file.write(response.content)
-                pixmap = QPixmap(new_image_path)
-                self.image_label.setPixmap(pixmap)
-                self.current_image_path = new_image_path
-            else:
-                # Handle API errors
-                print(f"Error: Unable to process image. API Response: {response.status_code}, {response.text}")
+           # Handle the API response
+        if response.status_code == 200:
+            # Save and display the new image
+            print("API call successful...")
+            new_image_path = os.path.join(desktop_path, 'new_image.jpg')
+            with open(new_image_path, 'wb') as new_image_file:
+                new_image_file.write(response.content)
+            pixmap = QPixmap(new_image_path)
+            scaled_pixmap = pixmap.scaled(pixmap.width() // 2, pixmap.height() // 2, Qt.AspectRatioMode.KeepAspectRatio)
+            self.image_label.setPixmap(scaled_pixmap)
+            self.current_image_path = new_image_path
+        else:
+            # Handle API errors
+            print(f"Error: Unable to process image. API Response: {response.status_code}, {response.text}")
 
 
 
