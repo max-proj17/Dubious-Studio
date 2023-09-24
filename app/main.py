@@ -58,7 +58,7 @@ class DrawingApp(QMainWindow):
 
         # Connect slider value changed signal to setEraserSize method
         
-        self.toolbox = Toolbox.Toolbox(DrawingApp, layout=rightLayout, parent=self.rightSidebar)
+        self.toolbox = Toolbox.Toolbox(DrawingApp, rightLayout, self.rightSidebar)
         rightLayout.addWidget(self.toolbox)
         
         
