@@ -1,5 +1,6 @@
 import sys
 import os
+import shutil
 import requests
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QFileDialog, QLineEdit
 from PyQt6.QtGui import QPixmap
@@ -54,7 +55,7 @@ class AIWidget(QWidget):
         if file_name:
             # Display the selected image
             pixmap = QPixmap(file_name)
-            scaled_pixmap = pixmap.scaled(pixmap.width() // 2, pixmap.height() // 2, Qt.AspectRatioMode.KeepAspectRatio)
+            scaled_pixmap = pixmap.scaled(pixmap.width() // 4, pixmap.height() // 4, Qt.AspectRatioMode.KeepAspectRatio)
             self.image_label.setPixmap(scaled_pixmap)
             self.current_image_path = file_name
 
@@ -68,37 +69,42 @@ class AIWidget(QWidget):
             desktop_path = os.path.join(os.path.expanduser('~'), 'Desktop')
             old_image_name = os.path.basename(self.current_image_path)
             old_image_path = os.path.join(desktop_path, old_image_name)
-            os.rename(self.current_image_path, old_image_path)
-
+          
+            try:
+                print("About to enter shutil code")
+                shutil.copy(self.current_image_path, old_image_path)  # Copy the original image to the desktop
+                print( "Post shutil")
+            except Exception as e:
+                print("Exception occurred:", e)
             # Define the URL, headers, and prompt
             url = "https://clipdrop-api.co/sketch-to-image/v1/sketch-to-image"
             headers = {
                 "x-api-key": self.stablexl_key,
             }
-            prompt = "apple"  # Replace with the actual prompt
 
             # Make API call and process the image
-            with open(old_image_path, 'rb') as image_file:
+            with open(self.current_image_path, 'rb') as image_file:  # Use the original image file for the API call
                 files = {'sketch_file': (old_image_name, image_file, 'image/png')}
                 data = {'prompt': prompt}
                 response = requests.post(url, headers=headers, files=files, data=data)
             
             print("Called the API key")
-            
-           # Handle the API response
-        if response.status_code == 200:
-            # Save and display the new image
-            print("API call successful...")
-            new_image_path = os.path.join(desktop_path, 'new_image.jpg')
-            with open(new_image_path, 'wb') as new_image_file:
-                new_image_file.write(response.content)
-            pixmap = QPixmap(new_image_path)
-            scaled_pixmap = pixmap.scaled(pixmap.width() // 2, pixmap.height() // 2, Qt.AspectRatioMode.KeepAspectRatio)
-            self.image_label.setPixmap(scaled_pixmap)
-            self.current_image_path = new_image_path
-        else:
-            # Handle API errors
-            print(f"Error: Unable to process image. API Response: {response.status_code}, {response.text}")
+
+                
+            # Handle the API response
+            if response.status_code == 200:
+                # Save and display the new image
+                print("API call successful...")
+                new_image_path = os.path.join(desktop_path, 'new_image.jpg')
+                with open(new_image_path, 'wb') as new_image_file:
+                    new_image_file.write(response.content)
+                pixmap = QPixmap(new_image_path)
+                scaled_pixmap = pixmap.scaled(pixmap.width() // 4, pixmap.height() // 4, Qt.AspectRatioMode.KeepAspectRatio)
+                self.image_label.setPixmap(scaled_pixmap)
+                self.current_image_path = new_image_path
+            else:
+                # Handle API errors
+                print(f"Error: Unable to process image. API Response: {response.status_code}, {response.text}")
 
 
 
