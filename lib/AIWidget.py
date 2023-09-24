@@ -5,8 +5,8 @@ from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt, QDir
 
 class AIWidget(QWidget):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, layout=None, parent=None):
+        super(AIWidget, self).__init__(parent)
 
         # Initialize UI components
         self.init_ui()

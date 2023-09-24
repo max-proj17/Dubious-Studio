@@ -61,6 +61,8 @@ class DrawingApp(QMainWindow):
         self.toolbox = Toolbox.Toolbox(DrawingApp, rightLayout, self.rightSidebar)
         rightLayout.addWidget(self.toolbox)
         
+        self.ai_widget = AIWidget.AIWidget(self.rightSidebar)
+        rightLayout.addWidget(self.ai_widget)
         
         self.toolbox.sizeSlider.valueChanged.connect(self.canvas.setSize)
         self.toolbox.opacitySlider.valueChanged.connect(self.canvas.setOpacity)
@@ -80,10 +82,6 @@ class DrawingApp(QMainWindow):
         self.show()
 
         self.toolbox.capStyleComboBox.currentTextChanged.connect(self.setCapStyle)
-        
-        
-
-        
 
     def setCapStyle(self, text):
         capStyles = {

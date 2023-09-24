@@ -46,14 +46,14 @@ class Toolbox(QWidget):
         self.capStyleComboBox.setCurrentIndex(2)
         
         # AI Widget
-        self.ai_widget = AIWidget.AIWidget()
-        layout.addWidget(self.ai_widget)
+        # self.ai_widget = AIWidget.AIWidget()
+        # layout.addWidget(self.ai_widget)
         
         # At the end
-
         self.saveButton = QPushButton("Save as .png", self)
         self.saveButton.clicked.connect(self.saveCanvas)
         layout.addWidget(self.saveButton)
+        
         layout.addStretch(1)
         
     def saveCanvas(self):
