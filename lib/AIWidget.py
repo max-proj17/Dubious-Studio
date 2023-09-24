@@ -16,8 +16,8 @@ class AIWidget(QWidget):
         load_dotenv()
 
         # Access the API key
-        stablexl_key = os.getenv("STABLEXL_API_KEY")
-        openai_key = os.getenv("OPENAI_API_KEY")
+        self.stablexl_key = os.getenv("STABLEXL_API_KEY")
+        self.openai_key = os.getenv("OPENAI_API_KEY")
         
         
 
@@ -53,8 +53,10 @@ class AIWidget(QWidget):
             self.current_image_path = file_name
 
     def process_image(self):
+        print("Processing image...")
         # Check if there is an old image and API key is available
-        if hasattr(self, 'current_image_path') and self.clipdrop_api_key:
+        if hasattr(self, 'current_image_path') and self.stablexl_key:
+            print("Image and API key are available...")
             # Save old image to desktop
             desktop_path = os.path.join(os.path.expanduser('~'), 'Desktop')
             old_image_name = os.path.basename(self.current_image_path)
@@ -62,18 +64,22 @@ class AIWidget(QWidget):
             os.rename(self.current_image_path, old_image_path)
 
             # Make API call and process the image
-            url = "https://api.clipdrop.co/sketch-to-image"
+            url = "https://clipdrop-api.co/sketch-to-image/v1/sketch-to-image"
             headers = {
-                "Authorization": f"Bearer {self.clipdrop_api_key}",
+                "Authorization": f"Bearer {self.stablexl_key}",
                 "Content-Type": "application/json",
             }
-            with open(self.current_image_path, 'rb') as image_file:
+            with open(old_image_path, 'rb') as image_file:
                 files = {'image': image_file}
                 response = requests.post(url, headers=headers, files=files)
+
+            
             print("Called the API key")
+            
             # Handle the API response
             if response.status_code == 200:
                 # Save and display the new image
+                print("API call successful...")
                 new_image_path = os.path.join(desktop_path, 'new_image.png')
                 with open(new_image_path, 'wb') as new_image_file:
                     new_image_file.write(response.content)
@@ -83,7 +89,7 @@ class AIWidget(QWidget):
             else:
                 # Handle API errors
                 print(f"Error: Unable to process image. API Response: {response.status_code}, {response.text}")
-
+                print(f"Error: Unable to process image. API Response: {response.status_code}, {response.text}")
 
 
 
