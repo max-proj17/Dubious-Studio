@@ -3,11 +3,31 @@ import os
 import time
 import shutil
 import requests
-from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QFileDialog, QLineEdit
+from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QFileDialog, QLineEdit, QStackedWidget, QComboBox
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt, QDir
 from dotenv import load_dotenv
 
+class SketchToImageWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+        # Initialize UI components for Sketch to Image tool
+
+class TextToImageWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+        # Initialize UI components for Text to Image tool
+
+class ImageUpscalingWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+        # Initialize UI components for Image Upscaling tool
+        
+class SketchToImageWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+        # Initialize UI components for sketch to image tool
+        
 class AIWidget(QWidget):
     def __init__(self):
         super().__init__()
@@ -21,31 +41,26 @@ class AIWidget(QWidget):
         self.stablexl_key = os.getenv("STABLEXL_API_KEY")
         self.openai_key = os.getenv("OPENAI_API_KEY")
         
-        
 
-    def init_ui(self):
         # Create layout
         layout = QVBoxLayout()
 
-        # Create upload button
-        self.upload_btn = QPushButton('Upload Image')
-        self.upload_btn.clicked.connect(self.upload_image)
-        layout.addWidget(self.upload_btn)
+        # Create a combo box for tool selection
+        self.toolComboBox = QComboBox()
+        self.toolComboBox.addItems(["Sketch to Image", "Text to Image", "Image Upscaling"])
+        layout.addWidget(self.toolComboBox)
 
-        # Create prompt input field
-        self.prompt_input = QLineEdit()
-        self.prompt_input.setPlaceholderText("Enter prompt describing the content to generate")
-        layout.addWidget(self.prompt_input)
+        # Create a stacked widget to hold tool widgets
+        self.stackedWidget = QStackedWidget()
+        layout.addWidget(self.stackedWidget)
 
-        # Create process button
-        self.process_btn = QPushButton('Process Image')
-        self.process_btn.clicked.connect(self.process_image)
-        layout.addWidget(self.process_btn)
+        # Add tool widgets to the stacked widget
+        self.stackedWidget.addWidget(SketchToImageWidget())
+        self.stackedWidget.addWidget(TextToImageWidget())
+        self.stackedWidget.addWidget(ImageUpscalingWidget())
 
-        # Create image label
-        self.image_label = QLabel()
-        self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(self.image_label)
+        # Connect the combo box signal to switch tool widgets
+        self.toolComboBox.currentIndexChanged.connect(self.stackedWidget.setCurrentIndex)
 
         # Set layout
         self.setLayout(layout)
