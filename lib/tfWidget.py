@@ -74,7 +74,8 @@ class tfWidget(QWidget):
 
         # Convert tensor to QImage
         stylized_image = tf.image.convert_image_dtype(stylized_image, dtype=tf.uint8)
-        height, width, channel = stylized_image.shape
+        batch_size, height, width, channel = stylized_image.shape
+        stylized_image = stylized_image[0]  # Take the first image from the batch
         bytesPerLine = 3 * width
         qImg = QImage(stylized_image.numpy().data, width, height, bytesPerLine, QImage.Format.Format_RGB888)
 

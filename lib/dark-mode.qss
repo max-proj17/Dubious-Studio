@@ -1,0 +1,92 @@
+QWidget {
+    background-color: #2E2E2E;
+    color: #E0E0E0;
+}
+QMainWindow {
+    background-color: #2E2E2E;
+}
+QPushButton {
+    background-color: #555555;
+    border: 1px solid #444;
+    padding: 5px;
+}
+QPushButton:hover {
+    background-color: #666666;
+}
+QPushButton:pressed {
+    background-color: #777777;
+}
+QDockWidget {
+    border: 1px solid #444;
+    titlebar-close-icon: url(/path/to/your/darkmode-icon.png);
+}
+QSlider::groove:horizontal {
+    background: #444;
+}
+
+QScrollBar:vertical {
+    border: 2px solid #2E2E2E;
+    background: #333;
+    width: 15px;
+    margin: 15px 0 15px 0;
+}
+
+QScrollBar::handle:vertical {
+    background: #FF0000;  /* bright red for testing */
+    min-height: 20px;
+}
+QScrollBar::handle:horizontal {
+    background: #FF0000;  /* bright red for testing */
+    min-width: 20px;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    border: 2px solid #2E2E2E;
+    background: #444;
+    height: 15px;
+    subcontrol-origin: margin;
+}
+
+QScrollBar:horizontal {
+    border: 2px solid #2E2E2E;
+    background: #333;
+    height: 15px;
+    margin: 0 15px 0 15px;
+}
+
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+    border: 2px solid #2E2E2E;
+    background: #444;
+    width: 15px;
+    subcontrol-origin: margin;
+}
+
+QSlider::groove:horizontal {
+    border: 1px solid #444;
+    height: 8px;
+    background: #333;
+    margin: 2px 0;
+}
+
+QSlider::handle:horizontal {
+    background: #555;
+    border: 1px solid #444;
+    width: 18px;
+    margin: -8px 0; 
+    border-radius: 9px;
+}
+
+QSlider::groove:vertical {
+    border: 1px solid #444;
+    width: 8px;
+    background: #333;
+    margin: 0 2px;
+}
+
+QSlider::handle:vertical {
+    background: #555;
+    border: 1px solid #444;
+    height: 18px;
+    margin: 0 -8px; 
+    border-radius: 9px;
+}

@@ -77,7 +77,7 @@ class DrawingApp(QMainWindow):
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.leftDock)
 
         self.setGeometry(100, 100, 1144, 1144)  # Adjust window size to accommodate the larger canvas
-        self.setWindowIcon(QIcon("resources/icon.png"))
+        self.setWindowIcon(QIcon("resources/logo-small.png"))
         self.setWindowTitle('Dubious Studio')
         self.show()
 
@@ -110,10 +110,10 @@ class DrawingApp(QMainWindow):
         
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    pixmap = QPixmap("resources/icon.png")
+    pixmap = QPixmap("resources/logo-medium.png")
     splash = QSplashScreen(pixmap)
     splash.show()
-    time.sleep(2)
+    time.sleep(1)
     window = DrawingApp()
     window.show()
     splash.finish(window)
