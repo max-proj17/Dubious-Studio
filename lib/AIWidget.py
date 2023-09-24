@@ -63,16 +63,18 @@ class AIWidget(QWidget):
             old_image_path = os.path.join(desktop_path, old_image_name)
             os.rename(self.current_image_path, old_image_path)
 
-            # Make API call and process the image
+            # Define the URL, headers, and prompt
             url = "https://clipdrop-api.co/sketch-to-image/v1/sketch-to-image"
             headers = {
-                "Authorization": f"Bearer {self.stablexl_key}",
-                "Content-Type": "application/json",
+                "x-api-key": self.stablexl_key,
             }
-            with open(old_image_path, 'rb') as image_file:
-                files = {'image': image_file}
-                response = requests.post(url, headers=headers, files=files)
+            prompt = "apple"  # Replace with the actual prompt
 
+            # Make API call and process the image
+            with open(old_image_path, 'rb') as image_file:
+                files = {'sketch_file': (old_image_name, image_file, 'image/png')}
+                data = {'prompt': prompt}
+                response = requests.post(url, headers=headers, files=files, data=data)
             
             print("Called the API key")
             
@@ -80,7 +82,7 @@ class AIWidget(QWidget):
             if response.status_code == 200:
                 # Save and display the new image
                 print("API call successful...")
-                new_image_path = os.path.join(desktop_path, 'new_image.png')
+                new_image_path = os.path.join(desktop_path, 'new_image.jpg')
                 with open(new_image_path, 'wb') as new_image_file:
                     new_image_file.write(response.content)
                 pixmap = QPixmap(new_image_path)
@@ -89,7 +91,7 @@ class AIWidget(QWidget):
             else:
                 # Handle API errors
                 print(f"Error: Unable to process image. API Response: {response.status_code}, {response.text}")
-                print(f"Error: Unable to process image. API Response: {response.status_code}, {response.text}")
+
 
 
 
