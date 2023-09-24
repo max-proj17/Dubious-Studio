@@ -10,16 +10,8 @@ root_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(root_folder)
 
 from lib import SketchToImageWidget
-
+from lib import TextToImageWidget
    
-class TextToImageWidget(QWidget):
-    def __init__(self):
-        super().__init__()
-        # Initialize UI components for Text to Image tool
-
-    # Implement the process_image method for Text to Image tool
-    def process_image(self):
-        pass  # Replace with actual implementation
 
 class ImageUpscalingWidget(QWidget):
     def __init__(self):
@@ -56,7 +48,7 @@ class AIWidget(QWidget):
 
         # Add tool widgets to the stacked widget
         self.stackedWidget.addWidget(SketchToImageWidget.SketchToImageWidget(self.stablexl_key))  # Pass the API key to the widget
-        self.stackedWidget.addWidget(TextToImageWidget())
+        self.stackedWidget.addWidget(TextToImageWidget.TextToImageWidget(self.stablexl_key))
         self.stackedWidget.addWidget(ImageUpscalingWidget())
 
         # Connect the combo box signal to switch tool widgets
