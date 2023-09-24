@@ -11,6 +11,8 @@ sys.path.append(root_folder)
 from lib import ColorPalette
 from lib import Toolbox
 from lib import DrawingCanvas
+from lib import AIWidget
+
 
 class DrawingApp(QMainWindow):
     def __init__(self):
@@ -56,8 +58,11 @@ class DrawingApp(QMainWindow):
 
         # Connect slider value changed signal to setEraserSize method
         
-        self.toolbox = Toolbox.Toolbox(self, layout=rightLayout, parent=self.rightSidebar)
+        self.toolbox = Toolbox.Toolbox(self, rightLayout, self.rightSidebar)
         rightLayout.addWidget(self.toolbox)
+        
+        self.ai_widget = AIWidget.AIWidget(self.rightSidebar)
+        rightLayout.addWidget(self.ai_widget)
         
         self.toolbox.sizeSlider.valueChanged.connect(self.canvas.setSize)
         self.toolbox.opacitySlider.valueChanged.connect(self.canvas.setOpacity)
@@ -86,7 +91,7 @@ class DrawingApp(QMainWindow):
             "Tapered": "Tapered"
         }
         self.canvas.setCapStyle(capStyles.get(text, Qt.PenCapStyle.FlatCap))
-        
+
     def saveCanvas(self, filename):
         # Create a QImage object with the same dimensions as the canvas
         image = QImage(QSize(1024, 1024), QImage.Format.Format_ARGB32)
@@ -102,7 +107,7 @@ class DrawingApp(QMainWindow):
 
         # Save the QImage to the specified filename
         image.save(filename)
-
+        
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = DrawingApp()

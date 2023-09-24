@@ -3,6 +3,10 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsS
 from PyQt6.QtGui import QPainter, QPen, QColor, QTransform, QBrush,  QPainterPath, QPainterPathStroker, QRadialGradient,  QPalette, QIcon, QImage
 from PyQt6.QtCore import Qt, QPoint, QSize, QRectF, pyqtSignal, QPointF
 import math
+root_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(root_folder)
+
+from lib import AIWidget
 
 class Toolbox(QWidget):
     def __init__(self, drawingApp, layout=None, parent=None):
@@ -41,13 +45,16 @@ class Toolbox(QWidget):
         layout.addWidget(self.capStyleComboBox)
         self.capStyleComboBox.setCurrentIndex(2)
         
-        # At the end
-
-        layout.addStretch(1)
+        # AI Widget
+        # self.ai_widget = AIWidget.AIWidget()
+        # layout.addWidget(self.ai_widget)
         
+        # At the end
         self.saveButton = QPushButton("Save as .png", self)
         self.saveButton.clicked.connect(self.saveCanvas)
         layout.addWidget(self.saveButton)
+        
+        layout.addStretch(1)
         
     def saveCanvas(self):
         filename, _ = QFileDialog.getSaveFileName(self, "Save Canvas", "", "PNG Files (*.png);;All Files (*)")
