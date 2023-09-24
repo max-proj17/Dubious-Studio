@@ -48,10 +48,6 @@ class Toolbox(QWidget):
         self.saveButton.clicked.connect(self.saveCanvas)
         layout.addWidget(self.saveButton)
         
-        self.sketchToImageButton = QPushButton("Sketch to Image", self)
-        self.sketchToImageButton.clicked.connect(self.sketchToImage)
-        layout.addWidget(self.sketchToImageButton)
-        
     def saveCanvas(self):
         filename, _ = QFileDialog.getSaveFileName(self, "Save Canvas", "", "PNG Files (*.png);;All Files (*)")
         if filename:
