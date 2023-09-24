@@ -4,6 +4,8 @@ from PyQt6.QtGui import QPainter, QPen, QColor, QTransform, QBrush,  QPainterPat
 from PyQt6.QtCore import Qt, QPoint, QSize, QRectF, pyqtSignal, QPointF
 import math
 
+# Use QPixmap as  a canvas to draw on
+# Make sure the canvas transformations are not affected "rotate, pan, etc)"
 class DrawingCanvas(QGraphicsView):
     def __init__(self, scene, parent=None):
         super(DrawingCanvas, self).__init__(scene, parent)
@@ -148,4 +150,4 @@ class DrawingCanvas(QGraphicsView):
         transform.rotate(self.rotationAngle)
         transform.scale(self.scaleFactor, self.scaleFactor)
         transform.translate(-self.canvasItem.rect().width() / 2, -self.canvasItem.rect().height() / 2)
-        self.canvasItem.setTransform(transform)
+        self.setTransform(transform)

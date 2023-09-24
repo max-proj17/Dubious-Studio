@@ -56,7 +56,7 @@ class DrawingApp(QMainWindow):
 
         # Connect slider value changed signal to setEraserSize method
         
-        self.toolbox = Toolbox.Toolbox(layout=rightLayout, parent=self.rightSidebar)
+        self.toolbox = Toolbox.Toolbox(self, layout=rightLayout, parent=self.rightSidebar)
         rightLayout.addWidget(self.toolbox)
         
         self.toolbox.sizeSlider.valueChanged.connect(self.canvas.setSize)
@@ -86,6 +86,22 @@ class DrawingApp(QMainWindow):
             "Tapered": "Tapered"
         }
         self.canvas.setCapStyle(capStyles.get(text, Qt.PenCapStyle.FlatCap))
+        
+    def saveCanvas(self, filename):
+        # Create a QImage object with the same dimensions as the canvas
+        image = QImage(QSize(1024, 1024), QImage.Format.Format_ARGB32)
+        image.fill(Qt.GlobalColor.white)  # Fill the image with a white background
+
+        # Create a QPainter object to paint the scene onto the QImage
+        painter = QPainter(image)
+        
+        sourceRect = QRectF(-512, -512, 1024, 1024)
+        
+        self.scene.render(painter, QRectF(0, 0, 1024, 1024), sourceRect)
+        painter.end()
+
+        # Save the QImage to the specified filename
+        image.save(filename)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

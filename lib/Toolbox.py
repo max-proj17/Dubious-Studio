@@ -1,12 +1,14 @@
 import sys, os
-from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, QButtonGroup, QDockWidget, QColorDialog, QListWidget, QListWidgetItem, QGraphicsRectItem, QComboBox, QLabel, QSlider, QHBoxLayout, QStyledItemDelegate, QStyle, QSpinBox
+from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene, QVBoxLayout, QWidget, QPushButton, QButtonGroup, QDockWidget, QColorDialog, QListWidget, QListWidgetItem, QGraphicsRectItem, QComboBox, QLabel, QSlider, QHBoxLayout, QStyledItemDelegate, QStyle, QSpinBox, QFileDialog
 from PyQt6.QtGui import QPainter, QPen, QColor, QTransform, QBrush,  QPainterPath, QPainterPathStroker, QRadialGradient,  QPalette, QIcon, QImage
 from PyQt6.QtCore import Qt, QPoint, QSize, QRectF, pyqtSignal, QPointF
 import math
+import 
 
 class Toolbox(QWidget):
-    def __init__(self, layout=None, parent=None):
+    def __init__(self, drawingApp, layout=None, parent=None):
         super(Toolbox, self).__init__(parent)
+        self.drawingApp = drawingApp
         layout = QVBoxLayout(self)
         
         # Eraser slider
@@ -42,3 +44,18 @@ class Toolbox(QWidget):
         
         # At the end
         layout.addStretch(1)
+        
+        self.saveButton = QPushButton("Save as .png", self)
+        self.saveButton.clicked.connect(self.saveCanvas)
+        layout.addWidget(self.saveButton)
+        
+        self.sketchToImageButton = QPushButton("Sketch to Image", self)
+        self.sketchToImageButton.clicked.connect(self.sketchToImage)
+        layout.addWidget(self.sketchToImageButton)
+        
+    def saveCanvas(self):
+        filename, _ = QFileDialog.getSaveFileName(self, "Save Canvas", "", "PNG Files (*.png);;All Files (*)")
+        if filename:
+            if not filename.endswith('.png'):
+                filename += '.png'
+            self.drawingApp.saveCanvas(filename)
