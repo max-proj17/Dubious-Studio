@@ -110,10 +110,10 @@ class DrawingApp(QMainWindow):
         
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    pixmap = QPixmap("resources/giphy.gif")
+    pixmap = QPixmap("resources/icon.png")
     splash = QSplashScreen(pixmap)
     splash.show()
-    time.sleep(3)
+    time.sleep(2)
     window = DrawingApp()
     window.show()
     splash.finish(window)
