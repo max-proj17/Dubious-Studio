@@ -222,23 +222,6 @@ class ColorPalette(QWidget):
         self.colorSliders = colorSliders
 
         # Define the sliders here
-        self.eraserSlider = QSlider(Qt.Orientation.Horizontal, self)
-        self.eraserSlider.setMinimum(1)
-        self.eraserSlider.setMaximum(20)
-        self.layout.addWidget(QLabel("Eraser Size:"))
-        self.layout.addWidget(self.eraserSlider)
-
-        self.sizeSlider = QSlider(Qt.Orientation.Horizontal, self)
-        self.sizeSlider.setMinimum(1)
-        self.sizeSlider.setMaximum(20)
-        self.layout.addWidget(QLabel("Size:"))
-        self.layout.addWidget(self.sizeSlider)
-
-        self.opacitySlider = QSlider(Qt.Orientation.Horizontal, self)
-        self.opacitySlider.setMinimum(1)
-        self.opacitySlider.setMaximum(100)
-        self.layout.addWidget(QLabel("Opacity:"))
-        self.layout.addWidget(self.opacitySlider)
         
         self.colorList = NonDraggableListWidget(self)
         self.colorList.setDragDropMode(QListWidget.DragDropMode.NoDragDrop)
@@ -258,11 +241,6 @@ class ColorPalette(QWidget):
         self.eraserSlider.setMaximum(20)
         self.layout.addWidget(QLabel("Eraser Size:"))
         self.layout.addWidget(self.eraserSlider)
-
-        self.capStyleComboBox = QComboBox(self)
-        self.capStyleComboBox.addItems(["Flat", "Square", "Round", "Tapered"])
-        self.layout.addWidget(QLabel("Cap Style:"))
-        self.layout.addWidget(self.capStyleComboBox)
 
         self.sizeSlider = QSlider(Qt.Orientation.Horizontal, self)
         self.sizeSlider.setMinimum(1)
