@@ -3,7 +3,6 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsS
 from PyQt6.QtGui import QPainter, QPen, QColor, QTransform, QBrush,  QPainterPath, QPainterPathStroker, QRadialGradient,  QPalette, QIcon, QImage
 from PyQt6.QtCore import Qt, QPoint, QSize, QRectF, pyqtSignal, QPointF
 import math
-import 
 
 class Toolbox(QWidget):
     def __init__(self, drawingApp, layout=None, parent=None):
