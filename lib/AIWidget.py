@@ -3,6 +3,7 @@ import os
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QFileDialog
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt, QDir
+from dotenv import load_dotenv
 
 class AIWidget(QWidget):
     def __init__(self, layout=None, parent=None):
@@ -10,6 +11,13 @@ class AIWidget(QWidget):
 
         # Initialize UI components
         self.init_ui()
+        # Load environment variables from .env file
+        load_dotenv()
+
+        # Access the API key
+        api_key = os.getenv("STABLEXL_API_KEY")
+        
+        print(api_key)
 
     def init_ui(self):
         # Create layout
