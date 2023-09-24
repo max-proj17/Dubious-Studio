@@ -17,7 +17,7 @@ class DrawingCanvas(QGraphicsView):
 
         self.currentSize = 1
         self.currentOpacity = 1.0
-        self.currentCapStyle = Qt.PenCapStyle.FlatCap
+        self.currentCapStyle = Qt.PenCapStyle.RoundCap
 
         self.scaleFactor = 1.0
         self.rotationAngle = 0.0
@@ -85,9 +85,7 @@ class DrawingCanvas(QGraphicsView):
             event.accept()
 
     def mouseMoveEvent(self, event):
-        
         if self.isDrawing:
-      
             self.endPoint = self.mapToScene(event.position().toPoint())
             
             pen = QPen(self.currentColor)
@@ -95,6 +93,7 @@ class DrawingCanvas(QGraphicsView):
             color = QColor(self.currentColor)
             color.setAlphaF(self.currentOpacity)
             
+            # Tapered brush style
             if self.currentCapStyle == "Tapered":
                 path = QPainterPath(self.startPoint)
                 path.lineTo(self.endPoint)
@@ -117,7 +116,7 @@ class DrawingCanvas(QGraphicsView):
                 pen.setCapStyle(self.currentCapStyle)
                 if self.currentTool == "erase":
                     pen.setColor(Qt.GlobalColor.white)
-                    pen.setWidth(10)
+                    pen.setWidth(self.currentEraserSize)
                 self.scene().addLine(self.startPoint.x(), self.startPoint.y(), self.endPoint.x(), self.endPoint.y(), pen)
 
             self.startPoint = self.endPoint
