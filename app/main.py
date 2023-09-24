@@ -12,7 +12,7 @@ from lib import ColorPalette
 from lib import Toolbox
 from lib import DrawingCanvas
 from lib import AIWidget
-
+from lib import tfWidget
 
 class DrawingApp(QMainWindow):
     def __init__(self):
