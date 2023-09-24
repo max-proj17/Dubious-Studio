@@ -15,6 +15,7 @@ class Toolbox(QWidget):
         self.eraserSlider.setMaximum(20)
         layout.addWidget(QLabel("Eraser Size:"))
         layout.addWidget(self.eraserSlider)
+        self.eraserSlider.setValue(10)
 
         # Brush Size
         self.sizeSlider = QSlider(Qt.Orientation.Horizontal, self)
@@ -22,6 +23,7 @@ class Toolbox(QWidget):
         self.sizeSlider.setMaximum(20)
         layout.addWidget(QLabel("Size:"))
         layout.addWidget(self.sizeSlider)
+        self.sizeSlider.setValue(1)
 
         # Opacity
         self.opacitySlider = QSlider(Qt.Orientation.Horizontal, self)
@@ -29,12 +31,14 @@ class Toolbox(QWidget):
         self.opacitySlider.setMaximum(100)
         layout.addWidget(QLabel("Opacity:"))
         layout.addWidget(self.opacitySlider)
+        self.opacitySlider.setValue(100)
 
         # Brush Style
         self.capStyleComboBox = QComboBox(self)
         self.capStyleComboBox.addItems(["Flat", "Square", "Round", "Tapered"])
         layout.addWidget(QLabel("Cap Style:"))
         layout.addWidget(self.capStyleComboBox)
+        self.capStyleComboBox.setCurrentIndex(2)
         
         # At the end
         layout.addStretch(1)
