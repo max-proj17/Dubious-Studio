@@ -1,5 +1,5 @@
 # [Dubious-Studio](https://devpost.com/software/dubious-studio) <-Devpost Page
-
+![Project Image](https://github.com/max-proj17/Dubious-Studio/blob/main/resources/logo-small.png)
 ## Summary
 Welcome to Dubious Studio, where creativity meets technology! Dubious Studio is an innovative assistive drawing desktop application meticulously designed for both budding and professional artists. Our platform seamlessly integrates the prowess of Generative AI and cutting-edge Deep Learning technologies to revolutionize artistic workflows and elevate creative expressions.
 
